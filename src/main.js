@@ -5,11 +5,7 @@ import "@fontsource/dm-sans/latin-600.css";
 import "@fontsource/manrope/latin-500.css";
 import "@fontsource/manrope/latin-700.css";
 import "./style.css";
-import {
-  compareRecitation,
-  normalize,
-  advanceMatchedVerses,
-} from "./recitation.js";
+import { compareRecitation, normalize, followVerses } from "./recitation.js";
 import { dateKey } from "./activity.js";
 import {
   readerScreen,
@@ -71,7 +67,8 @@ let state = {
   focusMode: false,
   theme: readLocal("hifdh-theme", "white") === "black" ? "black" : "white",
   recitationPage: false,
-  sessionTools: false,
+  controlsOpen: false,
+  soundBlocked: false,
   alertActive: false,
 };
 let recognition,
@@ -79,7 +76,8 @@ let recognition,
   requestId = 0,
   searchRequest = 0,
   activeSince = null,
-  alertContext;
+  alertContext,
+  alertAudio;
 const icons = { leaf: "◈", home: "⌂", book: "▤", mic: "♩", chart: "◴" };
 const escape = (s) =>
   String(s).replace(
@@ -111,8 +109,8 @@ function render() {
     "reciting-page",
     reading && state.recitationPage,
   );
-  document.body.classList.toggle("session-tools-open", state.sessionTools);
   document.body.dataset.theme = state.theme;
+  document.body.classList.toggle("quran-open", reading);
   document.documentElement.dataset.theme = state.theme;
   document
     .querySelector('meta[name="theme-color"]')
@@ -199,6 +197,7 @@ function playAyah() {
   let played = 0;
   const total = state.repeats;
   state.playing = true;
+  state.controlsOpen = false;
   activeSince = Date.now();
   const play = () => {
     if (audio !== player) return;
@@ -283,26 +282,79 @@ function prepareAlertSound() {
   if (!state.sound) return;
   try {
     const Context = window.AudioContext || window.webkitAudioContext;
-    if (!Context) return;
-    alertContext ||= new Context();
-    alertContext.resume()?.catch(() => {});
-  } catch {}
+    if (Context) {
+      if (!alertContext || alertContext.state === "closed")
+        alertContext = new Context();
+      // Must run directly in the Start/Test sound tap on iOS.
+      Promise.resolve(alertContext.resume()).catch(() => {
+        state.soundBlocked = true;
+      });
+      if (alertContext.createBuffer && alertContext.createBufferSource) {
+        const source = alertContext.createBufferSource();
+        source.buffer = alertContext.createBuffer(1, 1, 22050);
+        source.connect(alertContext.destination);
+        source.start(0);
+      }
+    }
+    if (!Context)
+      alertAudio ||= new Audio(`${import.meta.env.BASE_URL}mistake-alert.wav`);
+  } catch {
+    state.soundBlocked = true;
+  }
 }
 function tone() {
-  if (!state.sound || !alertContext || alertContext.state === "suspended")
-    return;
-  try {
-    const ctx = alertContext;
-    const o = ctx.createOscillator(),
-      g = ctx.createGain();
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.frequency.value = 440;
-    g.gain.setValueAtTime(0.08, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
-    o.start();
-    o.stop(ctx.currentTime + 0.22);
-  } catch {}
+  if (!state.sound) return;
+  const fallback = () => {
+    try {
+      alertAudio ||= new Audio(`${import.meta.env.BASE_URL}mistake-alert.wav`);
+      alertAudio.currentTime = 0;
+      Promise.resolve(alertAudio.play())
+        .then(() => {
+          state.soundBlocked = false;
+        })
+        .catch(() => {
+          state.soundBlocked = true;
+        });
+    } catch {
+      state.soundBlocked = true;
+    }
+  };
+  const play = () => {
+    try {
+      if (
+        !alertContext ||
+        alertContext.state === "suspended" ||
+        alertContext.state === "interrupted"
+      ) {
+        fallback();
+        return;
+      }
+      const ctx = alertContext,
+        o = ctx.createOscillator(),
+        g = ctx.createGain(),
+        now = ctx.currentTime;
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.frequency.value = 740;
+      g.gain.setValueAtTime(0.001, now);
+      g.gain.exponentialRampToValueAtTime(0.32, now + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.19);
+      g.gain.setValueAtTime(0.001, now + 0.27);
+      g.gain.exponentialRampToValueAtTime(0.32, now + 0.285);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+      o.start();
+      o.stop(now + 0.5);
+      state.soundBlocked = false;
+    } catch {
+      fallback();
+    }
+  };
+  if (
+    alertContext &&
+    (alertContext.state === "suspended" || alertContext.state === "interrupted")
+  )
+    Promise.resolve(alertContext.resume()).then(play).catch(fallback);
+  else play();
 }
 function startReciting() {
   if (state.loading) return;
@@ -317,6 +369,7 @@ function startReciting() {
   if (!Speech) {
     state.feedback =
       "Speech recognition is unavailable. Use a supported browser with microphone access, or practice with hints and audio.";
+    state.controlsOpen = true;
     render();
     return;
   }
@@ -350,25 +403,24 @@ function startReciting() {
     }
     const allWords = words(transcript),
       finalWords = words(finalTranscript);
-    const progression = advanceMatchedVerses(
+    const progression = followVerses(
       passage,
       state.verse,
       finalWords.slice(consumedWords).join(" "),
     );
     if (progression.completed.length) {
-      // Remove feedback for this still-open attempt if its final recognition
-      // now matches. Historical feedback from earlier attempts stays intact.
-      if (state.attemptId) {
-        state.mistakes = state.mistakes.filter((m) => m.id !== state.attemptId);
-        writeLocal("hifdh-mistakes", state.mistakes);
-      }
+      let hadMistake = false;
+      const originalVerse = state.verse;
       for (const completed of progression.completed) {
-        state.readerResults[`${state.surah}:${completed.verse}`] = passage[
-          completed.verse
-        ]
-          .split(/\s+/)
-          .map(() => "correct");
+        state.verse = completed.verse;
+        if (completed.verse !== originalVerse) state.attemptId = null;
+        state.readerResults[`${state.surah}:${completed.verse}`] =
+          completed.statuses;
+        if (completed.details.length || state.attemptId)
+          saveAttempt(completed.text, completed);
+        hadMistake ||= completed.details.length > 0;
       }
+      if (hadMistake) tone();
       consumedWords += progression.consumed;
       state.verse = Math.min(progression.verse, state.verses.length - 1);
       resetAttempt();
@@ -376,10 +428,15 @@ function startReciting() {
       if (progression.ended) {
         const last = progression.completed.at(-1);
         state.transcript = last.text;
+        state.extraWords = last.extraWords;
+        state.alertActive = last.details.length > 0;
         state.statuses = state.readerResults[`${state.surah}:${state.verse}`];
         stop();
-        state.feedback =
-          "All remaining ayahs matched. Session complete; pronunciation and tajweed are not assessed.";
+        state.feedback = Object.values(state.readerResults).some((statuses) =>
+          statuses.includes("mistake"),
+        )
+          ? "Session complete. Possible mistakes remain red for review; pronunciation and tajweed are not assessed."
+          : "All remaining ayahs matched. Session complete; pronunciation and tajweed are not assessed.";
         render();
         scrollToSelected();
         return;
@@ -410,11 +467,11 @@ function startReciting() {
       lastFinal = finalRemaining;
     }
     state.feedback = state.alertActive
-      ? "Possible mismatch in the final recognized text. Check what your browser heard."
+      ? "Possible mismatch marked red. Keep reciting; the reader will follow the next words."
       : remaining
         ? "Listening… keep reciting. Uncertain words wait for recognition to settle."
         : progression.completed.length
-          ? "Ayah matched. Continue reciting the next ayah."
+          ? "Continue reciting. Earlier possible mistakes remain red for review."
           : "Listening… begin the selected ayah.";
     render();
     if (progression.completed.length) scrollToSelected();
@@ -427,7 +484,7 @@ function startReciting() {
         ? "Microphone access was denied. Allow it in browser settings to recite."
         : `Speech recognition stopped (${e.error}). Try again or practice using audio and hints.`;
     state.listening = false;
-    state.sessionTools = true;
+    state.controlsOpen = true;
     endActivity();
     render();
   };
@@ -442,8 +499,8 @@ function startReciting() {
     session.start();
     state.recitationPage = true;
     state.focusMode = true;
+    state.controlsOpen = false;
     state.settingsOpen = false;
-    state.sessionTools = false;
     activeSince = Date.now();
     state.listening = true;
     state.feedback = "Listening in Arabic… begin the current ayah.";
@@ -468,6 +525,7 @@ function bind() {
           resetAttempt();
         }
         state.pendingDelete = false;
+        state.controlsOpen = false;
         render();
       }),
   );
@@ -643,12 +701,27 @@ function bindScreens() {
     if (!state.focusMode) state.recitationPage = false;
     render();
   });
-  on("test-alert", () => {
+  const testSound = () => {
+    state.sound = true;
     prepareAlertSound();
     tone();
     state.feedback =
       "Mistake alert preview. This is a test, not a detected mistake.";
     state.alertActive = true;
+    render();
+  };
+  on("test-alert", testSound);
+  on("test-sound", testSound);
+  on("menu-sound", () => {
+    state.sound = !state.sound;
+    if (state.sound) prepareAlertSound();
+    render();
+  });
+  on("clear-marks", () => {
+    stop();
+    state.readerResults = {};
+    resetAttempt();
+    state.feedback = "Session highlights cleared. Saved feedback is unchanged.";
     render();
   });
   on("theme", () => {
@@ -664,9 +737,14 @@ function bindScreens() {
         render();
       }),
   );
-  on("session-tools", () => {
-    state.sessionTools = !state.sessionTools;
+  on("controls-toggle", () => {
+    state.controlsOpen = !state.controlsOpen;
     render();
+  });
+  on("close-controls", () => {
+    state.controlsOpen = false;
+    render();
+    document.getElementById("controls-toggle")?.focus();
   });
   on("reader-settings", () => {
     state.settingsOpen = !state.settingsOpen;
@@ -815,3 +893,11 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", stop);
 
 render();
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && state.controlsOpen) {
+    state.controlsOpen = false;
+    render();
+    document.getElementById("controls-toggle")?.focus();
+  }
+});

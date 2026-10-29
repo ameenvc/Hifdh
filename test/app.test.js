@@ -407,15 +407,128 @@ test("reciting opens the full-window Quran sheet with reversible tools and focus
   assert.ok(a.w.document.body.classList.contains("focus-reading"));
   assert.equal(a.w.document.body.dataset.theme, "white");
   assert.equal(
-    a.w.document.getElementById("session-tools").getAttribute("aria-expanded"),
+    a.w.document
+      .getElementById("controls-toggle")
+      .getAttribute("aria-expanded"),
     "false",
   );
-  a.click("session-tools");
-  assert.ok(a.w.document.body.classList.contains("session-tools-open"));
-  a.click("session-tools");
-  assert.ok(!a.w.document.body.classList.contains("session-tools-open"));
+  a.click("controls-toggle");
+  assert.equal(
+    a.w.document.getElementById("recitation-controls").hidden,
+    false,
+  );
+  a.click("controls-toggle");
+  assert.equal(a.w.document.getElementById("recitation-controls").hidden, true);
   a.click("focus");
   assert.ok(!a.w.document.body.classList.contains("reciting-page"));
   assert.ok(!a.w.document.body.classList.contains("focus-reading"));
+  a.close();
+});
+
+test("possible wrong words stay red while later ayahs continue normally", async () => {
+  const a = app();
+  await tick();
+  a.tab("Practice");
+  a.click("listen");
+  a.say("بسم نور الرحمن الرحيم الحمد لله رب العالمين الرحمن الرحيم");
+  assert.ok(
+    a.w.document.querySelector('[data-verse="3"][aria-current="true"]'),
+  );
+  assert.equal(
+    a.w.document.querySelector("#listen").getAttribute("aria-pressed"),
+    "true",
+  );
+  assert.equal(
+    a.w.document.querySelector(".basmala .word.mistake").textContent,
+    "ٱللَّهِ",
+  );
+  assert.equal(
+    a.w.document.querySelectorAll(".mushaf-text .word.mistake").length,
+    0,
+  );
+  assert.equal(a.tones, 1);
+  assert.equal(
+    JSON.parse(a.w.localStorage.getItem("hifdh-mistakes")).length,
+    1,
+  );
+  a.say(
+    "بسم نور الرحمن الرحيم الحمد لله رب العالمين الرحمن الرحيم مالك يوم الدين إياك نعبد وإياك نستعين إهدنا الصراط المستقيم",
+  );
+  assert.ok(
+    a.w.document.querySelector('[data-verse="6"][aria-current="true"]'),
+  );
+  assert.equal(
+    a.w.document.querySelectorAll(".mushaf-text .word.mistake").length,
+    0,
+  );
+  assert.equal(a.tones, 1);
+  a.close();
+});
+test("Alif Lam Meem spoken names match and the reader continues without false red", async () => {
+  const a = app();
+  await tick();
+  a.w.document.querySelector('[data-tab="Library"]').click();
+  a.w.document.querySelector('[data-surah="2"]').click();
+  a.tab("Practice");
+  a.click("listen");
+  a.say("بسم الله الرحمن الرحيم ألف لام ميم");
+  assert.ok(
+    a.w.document.querySelector('[data-verse="1"][aria-current="true"]'),
+  );
+  assert.equal(a.w.document.querySelector(".word.mistake"), null);
+  assert.equal(a.tones, 0);
+  a.close();
+});
+test("one dropdown exposes controls and closes with Escape", async () => {
+  const a = app();
+  await tick();
+  assert.equal(
+    a.w.document.querySelectorAll(".reader-controls> .controls-dropdown")
+      .length,
+    1,
+  );
+  assert.equal(a.w.document.getElementById("recitation-controls").hidden, true);
+  a.click("controls-toggle");
+  assert.equal(
+    a.w.document.getElementById("recitation-controls").hidden,
+    false,
+  );
+  for (const id of ["listen", "play", "next", "prev", "test-sound", "finish"])
+    assert.ok(a.w.document.getElementById(id));
+  a.w.document.dispatchEvent(
+    new a.w.KeyboardEvent("keydown", { key: "Escape" }),
+  );
+  assert.equal(a.w.document.getElementById("recitation-controls").hidden, true);
+  a.close();
+});
+test("a suspended audio context is resumed rather than silently dropping the alert", async () => {
+  const a = app();
+  await tick();
+  let resumed = 0,
+    tones = 0;
+  a.w.AudioContext = class {
+    state = "suspended";
+    currentTime = 0;
+    destination = {};
+    resume() {
+      resumed++;
+      this.state = "running";
+      return Promise.resolve();
+    }
+    createOscillator() {
+      tones++;
+      return { connect() {}, frequency: { value: 0 }, start() {}, stop() {} };
+    }
+    createGain() {
+      return {
+        connect() {},
+        gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+      };
+    }
+  };
+  a.click("test-sound");
+  await tick();
+  assert.ok(resumed > 0);
+  assert.equal(tones, 1);
   a.close();
 });

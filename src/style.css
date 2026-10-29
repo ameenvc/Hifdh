@@ -3542,3 +3542,196 @@ html[data-theme="black"] {
   background: #000;
   color-scheme: dark;
 }
+/* One bottom dropdown contains recitation actions and reader navigation. */
+.reader-controls {
+  position: relative !important;
+  flex-shrink: 0;
+  padding: 10px 16px !important;
+  overflow: visible;
+}
+.controls-dropdown {
+  position: relative;
+  max-width: 470px;
+  margin: 0 auto;
+  z-index: 40;
+}
+.controls-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  width: 100%;
+  padding: 12px 18px;
+  background: var(--button);
+  border: 1px solid var(--button);
+  border-radius: 11px;
+  color: var(--on-button);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px #00000012;
+}
+.controls-toggle > span:nth-child(2) {
+  flex: 1;
+  text-align: left;
+}
+.controls-toggle > span:last-child {
+  font-size: 18px;
+}
+.controls-sheet {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(470px, calc(100vw - 24px));
+  max-height: min(74dvh, 650px);
+  overflow: auto;
+  padding: 18px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  box-shadow: 0 -8px 45px #0003;
+  overscroll-behavior: contain;
+}
+.controls-sheet[hidden] {
+  display: none;
+}
+.controls-sheet-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.controls-sheet-heading strong {
+  font-size: 13px;
+}
+.controls-sheet-heading > button {
+  background: var(--raised);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  height: 32px;
+  width: 32px;
+  font-size: 21px;
+}
+.controls-verse {
+  font-size: 10px;
+  color: var(--muted);
+  margin: 8px 0 16px;
+}
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.controls-grid > button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 43px;
+  padding: 10px 12px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 11px;
+}
+.controls-grid > button svg {
+  width: 17px;
+  height: 17px;
+}
+.controls-grid > button:hover {
+  border-color: var(--hint);
+  background: var(--soft);
+}
+.controls-grid > button.listen-button {
+  background: var(--button);
+  color: var(--on-button);
+  border-color: var(--button);
+}
+.controls-sheet .recitation-status {
+  margin: 0 0 12px !important;
+}
+.controls-sheet .transcript {
+  display: block !important;
+  max-height: 170px;
+}
+.controls-sheet .sound-help,
+.controls-sheet .recognition-note {
+  display: block !important;
+  font-size: 9px;
+  line-height: 1.7;
+  color: var(--muted);
+  text-align: left;
+  margin: 15px 0 0;
+}
+.controls-navigation {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  padding-top: 16px;
+  margin-top: 15px;
+  border-top: 1px solid var(--line);
+}
+.controls-navigation > button {
+  background: var(--raised);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  min-height: 34px;
+  font-size: 10px;
+}
+.recitation-flag {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--error-text);
+  border: 1px solid var(--error-border);
+  background: var(--error-bg);
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 470px;
+  margin: 0 auto 8px;
+}
+.reciting-page .controls-sheet .recitation-status {
+  display: flex !important;
+}
+.reciting-page .controls-sheet .recognition-note {
+  display: block !important;
+}
+.reciting-page .reader-controls {
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+}
+.word.extra-word {
+  color: var(--red);
+}
+@media (max-width: 520px) {
+  .quran-open .sidebar {
+    display: none;
+  }
+  .quran-open .reader-view {
+    height: 100dvh;
+    margin-bottom: 0;
+    padding: 0;
+  }
+  .quran-open .reader-controls {
+    padding: 9px 12px calc(9px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .controls-sheet {
+    max-height: 72dvh;
+    padding: 16px;
+  }
+  .controls-grid {
+    gap: 7px;
+  }
+  .controls-grid > button {
+    font-size: 10px;
+    padding: 10px;
+    min-height: 43px;
+  }
+  .controls-toggle {
+    min-height: 45px;
+    font-size: 11px;
+  }
+}

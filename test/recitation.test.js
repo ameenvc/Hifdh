@@ -128,3 +128,88 @@ test("extra final words at the end of a surah are not silently discarded", () =>
   assert.equal(result.ended, false);
   assert.equal(result.consumed, 0);
 });
+
+import { followVerses } from "../src/recitation.js";
+import { practiceText } from "../src/quran.js";
+test("spoken disconnected letters match only the exact source opening forms", () => {
+  for (const [number, spoken] of [
+    [2, "ألف لام ميم"],
+    [7, "ألف لام ميم صاد"],
+    [19, "كاف هاء ياء عين صاد"],
+    [20, "طاء هاء"],
+    [26, "طاء سين ميم"],
+    [36, "ياء سين"],
+    [40, "حاء ميم"],
+    [50, "قاف"],
+    [68, "نون"],
+  ]) {
+    const expected = practiceText(number, 0, chapter(number).verses[0]);
+    const result = compareRecitation(expected, spoken);
+    assert.equal(result.statuses[0], "correct", String(number));
+    assert.equal(result.extraWords, 0, String(number));
+  }
+  assert.equal(compareRecitation("أَلَمْ", "ألف لام ميم").complete, false);
+  assert.equal(compareRecitation("الٓمٓ", "ألف لام نون").complete, false);
+});
+test("split and joined Arabic words compare without changing source word statuses", () => {
+  assert.equal(
+    compareRecitation("وَإِيَّاكَ نَسْتَعِينُ", "و إياك نستعين").complete,
+    true,
+  );
+  assert.deepEqual(
+    compareRecitation("الْحَمْدُ لِلَّهِ", "الحمدلله").statuses,
+    ["correct", "correct"],
+  );
+  assert.equal(
+    compareRecitation("وَإِيَّاكَ نَسْتَعِينُ", "و إياك نعبد").complete,
+    false,
+  );
+  assert.equal(
+    compareRecitation(
+      "۞ ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ",
+      "إهدنا الصراط المستقيم",
+    ).complete,
+    true,
+  );
+});
+test("flow advances past wrong and omitted words without painting the later ayah red", () => {
+  const verses = chapter(1).verses;
+  const result = followVerses(
+    verses,
+    0,
+    "بسم نور الرحمن الرحيم الحمد لله رب العالمين الرحمن الرحيم",
+  );
+  assert.equal(result.verse, 3);
+  assert.equal(result.completed[0].statuses[1], "mistake");
+  assert.ok(
+    result.completed
+      .slice(1)
+      .every((v) => v.statuses.every((s) => s === "correct")),
+  );
+  const skipped = followVerses(verses, 1, "الحمد لله رب الرحمن الرحيم");
+  assert.equal(skipped.verse, 3);
+  assert.equal(skipped.completed[0].details[0].type, "missed");
+});
+
+import { letterNames } from "../src/letter-names.js";
+test("all 29 surahs with disconnected-letter openings have a spoken-name form", () => {
+  const openings = [
+    2, 3, 7, 10, 11, 12, 13, 14, 15, 19, 20, 26, 27, 28, 29, 30, 31, 32, 36, 38,
+    40, 41, 42, 43, 44, 45, 46, 50, 68,
+  ];
+  for (const number of openings) {
+    const word = practiceText(number, 0, chapter(number).verses[0]).split(
+      /\s+/,
+    )[0];
+    assert.ok(letterNames[word], String(number));
+    assert.equal(
+      compareRecitation(word, letterNames[word][0]).complete,
+      true,
+      String(number),
+    );
+  }
+  assert.equal(
+    compareRecitation(chapter(42).verses[1], "عين سين قاف").complete,
+    true,
+  );
+});
