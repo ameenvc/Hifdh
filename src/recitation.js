@@ -2,6 +2,12 @@ import { letterNames } from "./letter-names.js";
 import { normalize } from "./arabic.js";
 export { normalize } from "./arabic.js";
 import comparisonWords from "./data/comparison-words.json" with { type: "json" };
+export function spokenTokens(text) {
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((word) => normalize(word).length > 0);
+}
 export function matchingWord(word) {
   return comparisonWords[word] || normalize(word);
 }
@@ -160,7 +166,7 @@ export function compareWords(expected, spoken) {
 
 // Keep the original exact-only helper for callers needing strict completion.
 export function advanceMatchedVerses(verses, start, spoken) {
-  const actual = spoken.trim().split(/\s+/).filter(Boolean);
+  const actual = spokenTokens(spoken);
   let verse = start,
     consumed = 0;
   const completed = [];
@@ -191,7 +197,7 @@ export function advanceMatchedVerses(verses, start, spoken) {
 // A later matching phrase anchors the position even if an earlier word was
 // different or omitted. Completed ayahs retain their red words as we advance.
 export function followVerses(verses, start, spoken) {
-  const spokenWords = spoken.trim().split(/\s+/).filter(Boolean);
+  const spokenWords = spokenTokens(spoken);
   if (!spokenWords.length)
     return { verse: start, consumed: 0, completed: [], ended: false };
   let limit = start,

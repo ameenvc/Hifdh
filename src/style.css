@@ -3735,3 +3735,55 @@ html[data-theme="black"] {
     font-size: 11px;
   }
 }
+body[data-theme] .word.uncertain,
+body[data-theme] .uncertain-text {
+  color: inherit;
+  background: transparent;
+  text-decoration: underline dotted #b49460;
+  text-underline-offset: 7px;
+  border: 0;
+}
+.reader-controls .recitation-status.has-uncertainty {
+  background: var(--raised);
+  border-color: var(--line);
+  color: var(--muted);
+}
+.verification-actions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.verification-actions button {
+  font-size: 10px;
+  padding: 10px 12px;
+  min-height: 38px;
+  background: var(--raised);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.verification-actions button[data-confirm] {
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+.verification-actions button[data-dismiss] {
+  color: var(--text);
+}
+.mistake-types > .review-status {
+  background: var(--raised) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line);
+}
+.feedback-mode-note {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.mistake-card[data-reviewed="unverified"] .detail-list li > span:last-child {
+  color: var(--text);
+}
+.mistake-card[data-reviewed="unverified"] .mistake-types > span {
+  background: var(--raised);
+  color: var(--muted);
+}

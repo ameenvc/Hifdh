@@ -5,7 +5,12 @@ import "@fontsource/dm-sans/latin-600.css";
 import "@fontsource/manrope/latin-500.css";
 import "@fontsource/manrope/latin-700.css";
 import "./style.css";
-import { compareRecitation, normalize, followVerses } from "./recitation.js";
+import {
+  compareRecitation,
+  normalize,
+  followVerses,
+  spokenTokens,
+} from "./recitation.js";
 import { dateKey } from "./activity.js";
 import {
   readerScreen,
@@ -69,6 +74,11 @@ let state = {
   recitationPage: false,
   controlsOpen: false,
   soundBlocked: false,
+  feedbackMode:
+    readLocal("hifdh-feedback-mode", "safe") === "experimental"
+      ? "experimental"
+      : "safe",
+  uncertaintyActive: false,
   alertActive: false,
 };
 let recognition,
@@ -163,6 +173,14 @@ function resetAttempt() {
   state.revealAll = false;
   state.attemptId = null;
   state.alertActive = false;
+  state.uncertaintyActive = false;
+}
+function presentationStatuses(statuses) {
+  return statuses.map((status) =>
+    status === "mistake" && state.feedbackMode !== "experimental"
+      ? "uncertain"
+      : status,
+  );
 }
 function activeText() {
   return practiceText(state.surah, state.verse, state.verses[state.verse]);
@@ -388,10 +406,7 @@ function startReciting() {
     practiceText(state.surah, index, verse),
   );
   const words = (text) =>
-    ayahTranscript(state.surah, startVerse, text, normalize)
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean);
+    spokenTokens(ayahTranscript(state.surah, startVerse, text, normalize));
   session.onresult = (e) => {
     if (recognition !== session) return;
     let transcript = "",
@@ -415,12 +430,12 @@ function startReciting() {
         state.verse = completed.verse;
         if (completed.verse !== originalVerse) state.attemptId = null;
         state.readerResults[`${state.surah}:${completed.verse}`] =
-          completed.statuses;
+          presentationStatuses(completed.statuses);
         if (completed.details.length || state.attemptId)
           saveAttempt(completed.text, completed);
         hadMistake ||= completed.details.length > 0;
       }
-      if (hadMistake) tone();
+      if (hadMistake && state.feedbackMode === "experimental") tone();
       consumedWords += progression.consumed;
       state.verse = Math.min(progression.verse, state.verses.length - 1);
       resetAttempt();
@@ -429,13 +444,16 @@ function startReciting() {
         const last = progression.completed.at(-1);
         state.transcript = last.text;
         state.extraWords = last.extraWords;
-        state.alertActive = last.details.length > 0;
+        state.uncertaintyActive = last.details.length > 0;
+        state.alertActive =
+          last.details.length > 0 && state.feedbackMode === "experimental";
         state.statuses = state.readerResults[`${state.surah}:${state.verse}`];
         stop();
-        state.feedback = Object.values(state.readerResults).some((statuses) =>
-          statuses.includes("mistake"),
+        state.feedback = Object.values(state.readerResults).some(
+          (statuses) =>
+            statuses.includes("mistake") || statuses.includes("uncertain"),
         )
-          ? "Session complete. Possible mistakes remain red for review; pronunciation and tajweed are not assessed."
+          ? "Session complete. Unconfirmed recognition differences are available in Review; this is not a recitation assessment."
           : "All remaining ayahs matched. Session complete; pronunciation and tajweed are not assessed.";
         render();
         scrollToSelected();
@@ -448,31 +466,38 @@ function startReciting() {
     const confirmed = compareRecitation(activeText(), finalRemaining);
     // Browser interim hypotheses often revise words. Keep uncertain words
     // hidden until corrected/final rather than flashing false red mistakes.
-    state.statuses = result.statuses.map((status, index) =>
-      confirmed.statuses[index] === "mistake"
-        ? "mistake"
-        : status === "mistake"
-          ? "pending"
-          : status,
+    state.statuses = presentationStatuses(
+      result.statuses.map((status, index) =>
+        confirmed.statuses[index] === "mistake"
+          ? "mistake"
+          : status === "mistake"
+            ? "pending"
+            : status,
+      ),
     );
     state.transcript = remaining;
     state.extraWords = confirmed.extraWords;
     state.readerResults[`${state.surah}:${state.verse}`] = state.statuses;
-    state.alertActive = Boolean(
+    state.uncertaintyActive = Boolean(
       confirmed.extraWords || confirmed.statuses.includes("mistake"),
     );
+    state.alertActive =
+      state.feedbackMode === "experimental" && state.uncertaintyActive;
     if (finalRemaining && finalRemaining !== lastFinal) {
       if (state.alertActive) tone();
       saveAttempt(finalRemaining, confirmed);
       lastFinal = finalRemaining;
     }
-    state.feedback = state.alertActive
-      ? "Possible mismatch marked red. Keep reciting; the reader will follow the next words."
-      : remaining
-        ? "Listening… keep reciting. Uncertain words wait for recognition to settle."
-        : progression.completed.length
-          ? "Continue reciting. Earlier possible mistakes remain red for review."
-          : "Listening… begin the selected ayah.";
+    state.feedback =
+      state.uncertaintyActive && state.feedbackMode !== "experimental"
+        ? "Some words were not recognized clearly. Keep reciting; no recitation error has been confirmed."
+        : state.alertActive
+          ? "Possible mismatch marked red. Keep reciting; the reader will follow the next words."
+          : remaining
+            ? "Listening… keep reciting. Uncertain words wait for recognition to settle."
+            : progression.completed.length
+              ? "Continue reciting. Unconfirmed recognition differences can be checked in Review."
+              : "Listening… begin the selected ayah.";
     render();
     if (progression.completed.length) scrollToSelected();
   };
@@ -649,12 +674,14 @@ function saveAttempt(transcript, result) {
         normalize,
       ).trim(),
       details: result.details,
+      reviewStatus: "unverified",
+      source: "browser-speech",
     });
   state.mistakes = state.mistakes.slice(0, 200);
   writeLocal("hifdh-mistakes", state.mistakes);
 }
 function recitationFeedback() {
-  return `<div class="recitation-status ${state.statuses.includes("mistake") || state.extraWords ? "has-error" : ""} ${state.alertActive ? "mistake-alert-active" : ""}" role="status"><span>${state.alertActive ? "⚠" : state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${state.alertActive ? '<strong class="alert-label">CHECK RECITATION</strong>' : ""}${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What your browser heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
+  return `<div class="recitation-status ${state.alertActive ? "has-error" : state.uncertaintyActive ? "has-uncertainty" : ""} ${state.alertActive ? "mistake-alert-active" : ""}" role="status"><span>${state.alertActive ? "⚠" : state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${state.alertActive ? '<strong class="alert-label">CHECK RECITATION</strong>' : ""}${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What your browser heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
 }
 function readerWords(verse, index) {
   if (index === state.verse) return renderWords();
@@ -717,6 +744,60 @@ function bindScreens() {
     if (state.sound) prepareAlertSound();
     render();
   });
+  on("feedback-mode", () => {
+    stop();
+    state.feedbackMode =
+      state.feedbackMode === "safe" ? "experimental" : "safe";
+    writeLocal("hifdh-feedback-mode", state.feedbackMode);
+    state.readerResults = {};
+    resetAttempt();
+    state.feedback =
+      state.feedbackMode === "safe"
+        ? "Safe feedback: recognition differences are unconfirmed, without red error alerts."
+        : "Experimental text alerts enabled. Browser errors can mark correct recitation red.";
+    render();
+  });
+  document.querySelectorAll("[data-confirm]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const m = state.mistakes.find((m) => m.id === b.dataset.confirm);
+        if (!m) return;
+        m.reviewStatus = "confirmed";
+        writeLocal("hifdh-mistakes", state.mistakes);
+        const key = `${m.surah}:${m.verse}`;
+        const statuses =
+          state.readerResults[key] ||
+          m.expected.split(/\s+/).map(() => "pending");
+        for (const d of m.details)
+          if (d.type !== "extra" && d.position < statuses.length)
+            statuses[d.position] = "mistake";
+        state.readerResults[key] = statuses;
+        if (state.surah === m.surah && state.verse === m.verse)
+          state.statuses = statuses;
+        prepareAlertSound();
+        tone();
+        render();
+      }),
+  );
+  document.querySelectorAll("[data-dismiss]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const m = state.mistakes.find((m) => m.id === b.dataset.dismiss);
+        if (!m) return;
+        const key = `${m.surah}:${m.verse}`;
+        state.readerResults[key] = (state.readerResults[key] || []).map((s) =>
+          s === "uncertain" || s === "mistake" ? "correct" : s,
+        );
+        if (state.surah === m.surah && state.verse === m.verse) {
+          state.statuses = state.readerResults[key];
+          state.alertActive = false;
+          state.uncertaintyActive = false;
+        }
+        state.mistakes = state.mistakes.filter((x) => x.id !== m.id);
+        writeLocal("hifdh-mistakes", state.mistakes);
+        render();
+      }),
+  );
   on("clear-marks", () => {
     stop();
     state.readerResults = {};
@@ -785,17 +866,19 @@ function bindScreens() {
       ayahTranscript(state.surah, state.verse, state.transcript, normalize),
       { finished: true },
     );
-    state.statuses = result.statuses;
+    state.statuses = presentationStatuses(result.statuses);
     state.extraWords = result.extraWords;
-    state.readerResults[`${state.surah}:${state.verse}`] = result.statuses;
-    state.alertActive = result.details.length > 0;
+    state.readerResults[`${state.surah}:${state.verse}`] = state.statuses;
+    state.uncertaintyActive = result.details.length > 0;
+    state.alertActive =
+      state.feedbackMode === "experimental" && state.uncertaintyActive;
     if (state.alertActive) {
       prepareAlertSound();
       tone();
     }
     saveAttempt(state.transcript, result);
     state.feedback = result.details.length
-      ? "Attempt finished. Possible mismatches are saved in Review. Unrecited ending words count as missed when you finish."
+      ? "Attempt finished. Unconfirmed browser text differences are saved in Review, including any unrecited ending. No recitation mistake has been confirmed."
       : "All words matched. This does not assess pronunciation or tajweed.";
     render();
   });

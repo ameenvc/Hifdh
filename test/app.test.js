@@ -12,7 +12,10 @@ before(async () => {
     (asset) => asset.type === "chunk" && asset.isEntry,
   ).code;
 });
-function app(fetchImpl = () => Promise.reject(Error("offline")), storage = {}) {
+function app(
+  fetchImpl = () => Promise.reject(Error("offline")),
+  storage = { "hifdh-feedback-mode": '"experimental"' },
+) {
   const dom = new JSDOM('<div id="app"></div>', {
     url: "https://example.test/Hifdh/",
     runScripts: "outside-only",
@@ -122,7 +125,7 @@ test("reader offers continuous ayahs, word hints, bookmarks and correct reveal s
   );
   a.close();
 });
-test("final recognized mismatches persist with classifications and can be removed", async () => {
+test("experimental-mode recognized mismatches persist with classifications and can be removed", async () => {
   const a = app();
   await tick();
   a.click("listen");
@@ -530,5 +533,70 @@ test("a suspended audio context is resumed rather than silently dropping the ale
   await tick();
   assert.ok(resumed > 0);
   assert.equal(tones, 1);
+  a.close();
+});
+
+test("safe feedback is the default: browser differences never become automatic red mistakes or sounds", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.tab("Practice");
+  a.click("listen");
+  a.say("بسم نور الرحمن الرحيم الحمد لله رب العالمين");
+  assert.equal(a.w.document.querySelector(".word.mistake"), null);
+  assert.ok(a.w.document.querySelector(".word.uncertain"));
+  assert.equal(a.tones, 0);
+  const record = JSON.parse(a.w.localStorage.getItem("hifdh-mistakes"))[0];
+  assert.equal(record.reviewStatus, "unverified");
+  assert.equal(record.source, "browser-speech");
+  a.tab("Mistakes");
+  assert.match(
+    a.w.document.querySelector(".review-status").textContent,
+    /Unconfirmed/,
+  );
+  assert.equal(a.w.document.querySelector(".error-text"), null);
+  a.close();
+});
+test("only user-confirmed mistakes become red in safe mode and correct-recitation reports can be dismissed", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.click("listen");
+  a.say("بسم نور الرحمن الرحيم الحمد لله رب العالمين");
+  a.tab("Mistakes");
+  a.w.document.querySelector("[data-confirm]").click();
+  assert.equal(
+    JSON.parse(a.w.localStorage.getItem("hifdh-mistakes"))[0].reviewStatus,
+    "confirmed",
+  );
+  assert.ok(a.w.document.querySelector(".error-text"));
+  a.w.document.querySelector("[data-dismiss]").click();
+  assert.equal(a.w.document.querySelector(".mistake-card"), null);
+  a.close();
+});
+
+import standardText from "../src/data/simple-clean.json" with { type: "json" };
+import { practiceText } from "../src/quran.js";
+test("Yunus session boundaries remain aligned across punctuation-only recognition tokens", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.w.document.querySelector('[data-tab="Library"]').click();
+  a.w.document.querySelector('[data-surah="10"]').click();
+  a.click("listen");
+  let transcript = "";
+  for (let i = 0; i < 3; i++) {
+    let text = practiceText(10, i, standardText["10"][i].text);
+    if (i === 0) text = text.replace(/^الر /, "ألف لام راء ");
+    transcript += text.split(" ").join(" ، ") + " . ";
+    a.say(transcript);
+    assert.ok(
+      a.w.document.querySelector(
+        `[data-verse="${i + 1}"][aria-current="true"]`,
+      ),
+    );
+    assert.equal(
+      a.w.document.querySelector(".word.mistake,.word.uncertain"),
+      null,
+    );
+  }
+  assert.equal(a.tones, 0);
   a.close();
 });

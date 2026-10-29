@@ -213,3 +213,22 @@ test("all 29 surahs with disconnected-letter openings have a spoken-name form", 
     true,
   );
 });
+
+import standardText from "../src/data/simple-clean.json" with { type: "json" };
+import { spokenTokens } from "../src/recitation.js";
+test("Yunus 10:1–3 aligns accurate text and standalone recognition punctuation without drifting", () => {
+  const verses = chapter(10).verses.map((text, i) => practiceText(10, i, text));
+  const spoken = standardText["10"]
+    .slice(0, 3)
+    .map((row, i) => practiceText(10, i, row.text))
+    .join(" ")
+    .replace(/^الر /, "ألف لام راء ")
+    .split(" ")
+    .join(" ، ");
+  const result = followVerses(verses, 0, spoken);
+  assert.equal(result.verse, 3);
+  assert.equal(result.consumed, spokenTokens(spoken).length);
+  assert.ok(
+    result.completed.every((v) => v.statuses.every((s) => s === "correct")),
+  );
+});
