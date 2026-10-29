@@ -15,7 +15,9 @@ npm run dev -- --port 5173
 
 ## Features
 
-- Dark Quran reader with a full-height reading canvas, expandable focus mode, clear touch controls, adjustable Arabic text size, verse navigation and a saved bookmark. Reading and memorization share this screen.
+- White and black appearance choices, saved on this device. Toggle with the sun/moon button in the reader toolbar or select White/Black in settings. White is the default.
+- Starting recitation opens a full-window Quran sheet with flowing Arabic text and a small control dock. Navigation, status text and practice tools stay out of the reading area; **Tools & hints** reveals them when needed. The expand/collapse button returns to the usual reader. Mistake alerts remain visible.
+- Full-height reading canvas, clear touch controls, adjustable Arabic text size, verse navigation and a saved bookmark. Reading and memorization share this screen.
 - Review history separates possible different, missed and extra words, with expected text, recognized text, category filters and deletion. The latest 200 attempts with possible mistakes are retained locally.
 - Arabic phrase search links matching verses back to the reader. This is a text-search aid for Mutashabihat, not semantic similarity detection.
 - Actual practice activity, daily streaks, a 12-week activity grid and a weekly time chart. Speech/audio sessions record elapsed foreground time when paused or completed; manual sessions support reading away from the app.
@@ -49,7 +51,7 @@ Text attribution: [Tanzil Project](https://tanzil.net), CC BY 3.0 with verbatim-
 
 ## Validation
 
-The production build and 38 automated tests pass. Checks include all 114 Hafs surah counts, all 6,236 sequential verse/audio references, exact snapshot checksums, lossless Bismillah separation for all applicable surahs, At-Tawbah and Al-Fatiha exceptions, An-Naml 27:30 preservation, local search, guided recall, feedback review, actual activity, expandable focus and red alerts. Speech is simulated in interaction tests, including partial/final recognition revisions, Bismillah-to-next-ayah transitions and a full Al-Fatiha session.
+The production build and 40 automated tests pass. Checks include all 114 Hafs surah counts, all 6,236 sequential verse/audio references, exact snapshot checksums, lossless Bismillah separation for all applicable surahs, At-Tawbah and Al-Fatiha exceptions, An-Naml 27:30 preservation, local search, guided recall, feedback review, actual activity, expandable focus and red alerts. Appearance persistence and reversible recitation-page controls are also tested. Speech is simulated in interaction tests, including partial/final recognition revisions, Bismillah-to-next-ayah transitions and a full Al-Fatiha session.
 
 Chromium checks at widths 320, 375, 390, 768 and 1440 pixels passed navigation checks with no page errors or horizontal overflow. Reading areas were at least 280 pixels tall in these checks, and recitation controls fit the viewport. Expand/collapse and Bismillah display were also checked in the browser. Actual iPhone microphone recognition and audio service availability remain unverified in this environment.
 

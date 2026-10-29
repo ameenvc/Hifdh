@@ -3011,3 +3011,534 @@ footer {
     padding-top: 25px;
   }
 }
+/* Black and white appearance, shared across the app and Quran canvas. */
+body[data-theme="white"] {
+  color-scheme: light;
+  --canvas: #f4f4f4;
+  --surface: #fff;
+  --raised: #f3f3f3;
+  --line: #dedede;
+  --text: #171717;
+  --muted: #666;
+  --accent: #222;
+  --red: #be2339;
+  --soft: #eaeaea;
+  --button: #171717;
+  --on-button: #fff;
+  --selected: #f0f0f0;
+  --hint: #999;
+  --error-bg: #fff0f2;
+  --error-border: #d55c70;
+  --error-text: #a51f35;
+}
+body[data-theme="black"] {
+  color-scheme: dark;
+  --canvas: #000;
+  --surface: #090909;
+  --raised: #171717;
+  --line: #333;
+  --text: #f4f4f4;
+  --muted: #aaa;
+  --accent: #eee;
+  --red: #ff8a9c;
+  --soft: #282828;
+  --button: #eee;
+  --on-button: #111;
+  --selected: #202020;
+  --hint: #888;
+  --error-bg: #310f17;
+  --error-border: #cf536b;
+  --error-text: #ffb5c3;
+}
+body[data-theme] {
+  background: var(--canvas);
+  color: var(--text);
+}
+body[data-theme] .sidebar,
+body[data-theme] header {
+  background: var(--surface);
+  border-color: var(--line);
+}
+body[data-theme] .brand,
+body[data-theme] h1,
+body[data-theme] h2,
+body[data-theme] h3,
+body[data-theme] .brand-dot {
+  color: var(--text);
+}
+body[data-theme] .workspace-label,
+body[data-theme] .nav-item,
+body[data-theme] .sidebar-bottom p,
+body[data-theme] .sidebar-bottom > span,
+body[data-theme] .profile small,
+body[data-theme] .breadcrumb,
+body[data-theme] .today,
+body[data-theme] .screen-heading p,
+body[data-theme] .kicker,
+body[data-theme] .page-title p {
+  color: var(--muted);
+}
+body[data-theme] .nav-item.active,
+body[data-theme] .sidebar nav .nav-item.active {
+  background: var(--soft);
+  color: var(--text);
+}
+body[data-theme] .nav-item small,
+body[data-theme] .avatar {
+  background: var(--soft);
+  border-color: var(--line);
+  color: var(--text);
+}
+body[data-theme] .profile,
+body[data-theme] .reader-shell,
+body[data-theme] .reader-toolbar,
+body[data-theme] .reader-controls {
+  border-color: var(--line);
+}
+body[data-theme] .reader-shell,
+body[data-theme] .reader-toolbar,
+body[data-theme] .reader-mode,
+body[data-theme] .reader-controls,
+body[data-theme] .mushaf {
+  background: var(--surface);
+  color: var(--text);
+}
+body[data-theme] .reader-settings {
+  background: var(--raised);
+  border-color: var(--line);
+}
+body[data-theme] .reader-chapter strong,
+body[data-theme] .reader-icon,
+body[data-theme] .text-button {
+  color: var(--text);
+}
+body[data-theme] .reader-chapter span,
+body[data-theme] .reader-mode > span,
+body[data-theme] .reader-mode a,
+body[data-theme] .reader-settings label,
+body[data-theme] .selected-ayah-label > span,
+body[data-theme] .recognition-note {
+  color: var(--muted);
+}
+body[data-theme] .reader-icon:hover,
+body[data-theme] .reader-icon.bookmarked {
+  background: var(--soft);
+  color: var(--text);
+  border-color: var(--line);
+}
+body[data-theme] .mushaf {
+  scrollbar-color: var(--hint) var(--surface);
+  padding-top: 20px;
+  padding-bottom: 40px;
+}
+body[data-theme] .chapter-ornament {
+  background: var(--surface);
+  border-color: var(--line);
+  outline-color: var(--line);
+  margin-bottom: 25px;
+}
+body[data-theme] .chapter-ornament h2,
+body[data-theme] .chapter-ornament > span,
+body[data-theme] .basmala,
+body[data-theme] .mushaf-text {
+  color: var(--text);
+}
+body[data-theme] .mushaf-text {
+  line-height: 2.45;
+  word-spacing: 3px;
+}
+body[data-theme] .current-verse {
+  color: var(--text);
+  background: var(--selected);
+  box-shadow: 0 0 0 2px var(--selected);
+}
+body[data-theme] .verse-marker {
+  background: var(--surface);
+  border-color: var(--hint);
+  outline-color: var(--line);
+  color: var(--text);
+}
+body[data-theme] .verse-marker[aria-current="true"] {
+  background: var(--button);
+  color: var(--on-button);
+  border-color: var(--button);
+  outline-color: var(--hint);
+}
+body[data-theme] .word.correct {
+  background: none;
+  color: inherit;
+}
+body[data-theme] .word.mistake,
+body[data-theme] .error-text {
+  background: var(--error-bg);
+  color: var(--red);
+  border-color: var(--error-border);
+}
+body[data-theme] .masked-word {
+  background: var(--raised);
+  color: var(--hint);
+}
+body[data-theme] .segmented {
+  background: var(--raised);
+  border-color: var(--line);
+}
+body[data-theme] .segmented button {
+  color: var(--muted);
+}
+body[data-theme] .segmented button.selected {
+  background: var(--button);
+  color: var(--on-button);
+}
+body[data-theme] .listen-button {
+  background: var(--button);
+  color: var(--on-button);
+  border-color: var(--button);
+  box-shadow: none;
+}
+body[data-theme] .listen-button:hover,
+body[data-theme] .listen-button.is-listening {
+  background: var(--button);
+  color: var(--on-button);
+  border-color: var(--button);
+  box-shadow: 0 0 0 3px var(--soft);
+}
+body[data-theme] .secondary-button,
+body[data-theme] .arrow-button,
+body[data-theme] .recall-tools button {
+  background: var(--raised);
+  border-color: var(--line);
+  color: var(--text);
+}
+body[data-theme] .secondary-button:hover,
+body[data-theme] .arrow-button:hover,
+body[data-theme] .recall-tools button:hover {
+  background: var(--soft);
+  border-color: var(--hint);
+}
+body[data-theme] .sound-button,
+body[data-theme] .sound-button.enabled {
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+body[data-theme] .recitation-status {
+  background: var(--raised);
+  border-color: var(--line);
+  color: var(--muted);
+}
+body[data-theme] .recitation-status.has-error,
+body[data-theme] .reader-controls .recitation-status.has-error,
+body[data-theme] .mistake-alert-active {
+  background: var(--error-bg) !important;
+  border-color: var(--error-border) !important;
+  color: var(--error-text) !important;
+}
+body[data-theme] .alert-label,
+body[data-theme] .recitation-status.has-error > span {
+  color: var(--red);
+}
+body[data-theme] .reader-shell.has-mistake {
+  border-color: var(--error-border);
+  box-shadow: none;
+}
+body[data-theme] .transcript {
+  background: var(--raised);
+  border-color: var(--line);
+}
+body[data-theme] .transcript p {
+  color: var(--text);
+}
+body[data-theme] .transcript summary,
+body[data-theme] .transcript small {
+  color: var(--muted);
+}
+body[data-theme] input,
+body[data-theme] select,
+body[data-theme] .reader-settings input[type="number"],
+body[data-theme] .reader-settings select,
+body[data-theme] .verse-search input,
+body[data-theme] .manual-session input {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+  accent-color: var(--text);
+}
+.theme-choices {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.theme-choices button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 9px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.theme-choices button[aria-pressed="true"] {
+  background: var(--button);
+  border-color: var(--button);
+  color: var(--on-button);
+}
+.theme-choices svg {
+  width: 16px;
+  height: 16px;
+}
+body[data-theme] .library-card,
+body[data-theme] .empty-state,
+body[data-theme] .mistake-card,
+body[data-theme] .verse-search,
+body[data-theme] .search-result,
+body[data-theme] .progress-stats article,
+body[data-theme] .activity-card,
+body[data-theme] .memorized-card,
+body[data-theme] .manual-session,
+body[data-theme] .progress-page {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+}
+body[data-theme] .library-card:hover {
+  background: var(--soft);
+}
+body[data-theme] .library-card p,
+body[data-theme] .comparison p,
+body[data-theme] .search-result > p,
+body[data-theme] .progress-stats strong,
+body[data-theme] .progress-list > button {
+  color: var(--text);
+}
+body[data-theme] .library-card small,
+body[data-theme] .library-note,
+body[data-theme] .search-explanation,
+body[data-theme] .search-status,
+body[data-theme] .empty-state p,
+body[data-theme] .progress-stats article > span,
+body[data-theme] .progress-stats small,
+body[data-theme] .progress-stats p,
+body[data-theme] .manual-session p,
+body[data-theme] .manual-session label,
+body[data-theme] .chart-heading > span,
+body[data-theme] .comparison label,
+body[data-theme] .mistake-card-heading small,
+body[data-theme] .progress-list > p {
+  color: var(--muted);
+}
+body[data-theme] .count-chip,
+body[data-theme] .verse-chip,
+body[data-theme] .review-notice,
+body[data-theme] .review-filters button {
+  background: var(--raised);
+  border-color: var(--line);
+  color: var(--text);
+}
+body[data-theme] .review-filters button.active {
+  background: var(--button);
+  border-color: var(--button);
+  color: var(--on-button);
+}
+body[data-theme] .comparison,
+body[data-theme] .comparison > div + div,
+body[data-theme] .progress-list > button,
+body[data-theme] .detail-list li {
+  border-color: var(--line);
+}
+body[data-theme] .comparison > div + div {
+  background: var(--raised);
+}
+body[data-theme] .mistake-types > span {
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+body[data-theme] .detail-list li > span:first-child {
+  color: var(--muted);
+}
+body[data-theme] .detail-list li > span:last-child {
+  color: var(--red);
+}
+body[data-theme] .level-0 {
+  background: var(--soft);
+}
+body[data-theme] .level-1 {
+  background: #bcbcbc;
+}
+body[data-theme] .level-2 {
+  background: #888;
+}
+body[data-theme] .level-3 {
+  background: #555;
+}
+body[data-theme] .level-4 {
+  background: var(--text);
+}
+body[data-theme] .bar {
+  background: var(--hint);
+  border-color: var(--text);
+}
+body[data-theme] .activity-legend span,
+body[data-theme] .bar-column > span,
+body[data-theme] .bar-column > label,
+body[data-theme] footer {
+  color: var(--muted);
+}
+body[data-theme] i.live-dot,
+body[data-theme] .selected-ayah-label i {
+  background: var(--text);
+}
+body[data-theme] button:focus-visible,
+body[data-theme] a:focus-visible,
+body[data-theme] input:focus-visible,
+body[data-theme] select:focus-visible {
+  outline-color: var(--hint);
+}
+.session-tools-toggle {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 10px;
+  cursor: pointer;
+}
+.session-tools-toggle svg {
+  width: 14px;
+  height: 14px;
+}
+/* A recitation session is a full-window Quran sheet with a small control dock. */
+.reciting-page .reader-content {
+  padding: 0;
+}
+.reciting-page .reader-shell {
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+}
+.reciting-page .reader-toolbar {
+  padding: 7px 16px;
+}
+.reciting-page .reader-mode {
+  display: none;
+}
+.reciting-page .mushaf {
+  padding: 26px clamp(24px, 6vw, 100px) 40px;
+}
+.reciting-page .mushaf-text {
+  max-width: 1050px;
+  margin: 0 auto;
+  line-height: 2.5;
+}
+.reciting-page .basmala,
+.reciting-page .chapter-ornament {
+  max-width: 1050px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.reciting-page .current-verse {
+  background: none !important;
+  box-shadow: none !important;
+}
+.reciting-page .reader-controls {
+  position: relative;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+}
+.reciting-page .selected-ayah-label,
+.reciting-page .recognition-note {
+  display: none;
+}
+.reciting-page:not(.session-tools-open) .recall-tools,
+.reciting-page:not(.session-tools-open) .transcript,
+.reciting-page:not(.session-tools-open)
+  .recitation-status:not(.has-error):not(.mistake-alert-active) {
+  display: none;
+}
+.reciting-page .session-tools-toggle {
+  position: absolute;
+  right: 16px;
+  top: -37px;
+  box-shadow: 0 -2px 12px #00000009;
+}
+.reciting-page.session-tools-open .session-tools-toggle {
+  position: static;
+  margin: 0 auto 9px;
+}
+.reciting-page .reader-main-actions {
+  max-width: 450px;
+  margin: 0 auto;
+}
+.reciting-page .reader-controls .recitation-status.has-error {
+  max-width: 850px;
+  margin: 0 auto 10px;
+}
+.reciting-page .mushaf .word.correct {
+  background: none;
+}
+.reciting-page .reader-shell.has-mistake .reader-toolbar {
+  border-bottom: 2px solid var(--error-border);
+}
+@media (max-width: 520px) {
+  body[data-theme] .reader-toolbar {
+    gap: 1px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  body[data-theme] .reader-icon {
+    width: 34px;
+    min-width: 30px;
+    height: 40px;
+    min-height: 40px;
+  }
+  body[data-theme] .reader-chapter strong {
+    font-size: 12px;
+  }
+  body[data-theme] .reader-chapter span {
+    font-size: 8px;
+  }
+  body[data-theme] .mushaf {
+    padding-left: 23px;
+    padding-right: 23px;
+  }
+  body[data-theme] .mushaf-text {
+    line-height: 2.35;
+    word-spacing: 2px;
+  }
+  .reciting-page .mushaf {
+    padding: 20px 23px 35px;
+  }
+  .reciting-page .reader-controls {
+    padding: 9px 12px calc(9px + env(safe-area-inset-bottom, 0px));
+  }
+  .reciting-page .session-tools-toggle {
+    right: 12px;
+    top: -35px;
+    font-size: 9px;
+  }
+  .reciting-page .reader-main-actions > .listen-button {
+    min-width: 120px;
+  }
+  .reciting-page .chapter-ornament {
+    margin-top: 5px;
+  }
+  .reciting-page .reader-toolbar {
+    padding-top: calc(6px + env(safe-area-inset-top, 0px));
+  }
+  .theme-choices {
+    width: 100%;
+  }
+}
+html[data-theme="white"] {
+  background: #fff;
+  color-scheme: light;
+}
+html[data-theme="black"] {
+  background: #000;
+  color-scheme: dark;
+}

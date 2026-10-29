@@ -12,7 +12,7 @@ before(async () => {
     (asset) => asset.type === "chunk" && asset.isEntry,
   ).code;
 });
-function app(fetchImpl = () => Promise.reject(Error("offline"))) {
+function app(fetchImpl = () => Promise.reject(Error("offline")), storage = {}) {
   const dom = new JSDOM('<div id="app"></div>', {
     url: "https://example.test/Hifdh/",
     runScripts: "outside-only",
@@ -20,6 +20,8 @@ function app(fetchImpl = () => Promise.reject(Error("offline"))) {
   });
   const w = dom.window;
   w.fetch = fetchImpl;
+  for (const [key, value] of Object.entries(storage))
+    w.localStorage.setItem(key, value);
   let speech,
     player,
     tones = 0;
@@ -379,5 +381,41 @@ test("all Fatiha ayahs in standard spelling complete without changing displayed 
   assert.ok(
     a.w.document.querySelector('[data-verse="6"][aria-current="true"]'),
   );
+  a.close();
+});
+
+test("white is the default and black/white controls persist the appearance preference", async () => {
+  const a = app();
+  await tick();
+  assert.equal(a.w.document.body.dataset.theme, "white");
+  a.click("theme");
+  assert.equal(a.w.document.body.dataset.theme, "black");
+  assert.equal(a.w.localStorage.getItem("hifdh-theme"), '"black"');
+  a.click("reader-settings");
+  a.w.document.querySelector('[data-theme="white"]').click();
+  assert.equal(a.w.document.body.dataset.theme, "white");
+  a.close();
+  const b = app(undefined, { "hifdh-theme": '"black"' });
+  assert.equal(b.w.document.body.dataset.theme, "black");
+  b.close();
+});
+test("reciting opens the full-window Quran sheet with reversible tools and focus controls", async () => {
+  const a = app();
+  await tick();
+  a.click("listen");
+  assert.ok(a.w.document.body.classList.contains("reciting-page"));
+  assert.ok(a.w.document.body.classList.contains("focus-reading"));
+  assert.equal(a.w.document.body.dataset.theme, "white");
+  assert.equal(
+    a.w.document.getElementById("session-tools").getAttribute("aria-expanded"),
+    "false",
+  );
+  a.click("session-tools");
+  assert.ok(a.w.document.body.classList.contains("session-tools-open"));
+  a.click("session-tools");
+  assert.ok(!a.w.document.body.classList.contains("session-tools-open"));
+  a.click("focus");
+  assert.ok(!a.w.document.body.classList.contains("reciting-page"));
+  assert.ok(!a.w.document.body.classList.contains("focus-reading"));
   a.close();
 });

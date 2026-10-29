@@ -69,6 +69,9 @@ let state = {
   pendingDelete: false,
   loading: false,
   focusMode: false,
+  theme: readLocal("hifdh-theme", "white") === "black" ? "black" : "white",
+  recitationPage: false,
+  sessionTools: false,
   alertActive: false,
 };
 let recognition,
@@ -104,6 +107,16 @@ function render() {
   const s = current();
   const reading = state.tab === "Reader" || state.tab === "Practice";
   document.body.classList.toggle("focus-reading", reading && state.focusMode);
+  document.body.classList.toggle(
+    "reciting-page",
+    reading && state.recitationPage,
+  );
+  document.body.classList.toggle("session-tools-open", state.sessionTools);
+  document.body.dataset.theme = state.theme;
+  document.documentElement.dataset.theme = state.theme;
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute("content", state.theme === "white" ? "#ffffff" : "#000000");
   const scrollTop = document.querySelector(".mushaf")?.scrollTop || 0;
   document.querySelector("#app").innerHTML =
     `<aside class="sidebar"><a class="brand" href="#">◈ <span>hifdh<span class="brand-dot">.</span></span></a><div class="workspace-label">YOUR PERSONAL SANCTUARY</div><nav>${[
@@ -414,6 +427,7 @@ function startReciting() {
         ? "Microphone access was denied. Allow it in browser settings to recite."
         : `Speech recognition stopped (${e.error}). Try again or practice using audio and hints.`;
     state.listening = false;
+    state.sessionTools = true;
     endActivity();
     render();
   };
@@ -426,6 +440,10 @@ function startReciting() {
   };
   try {
     session.start();
+    state.recitationPage = true;
+    state.focusMode = true;
+    state.settingsOpen = false;
+    state.sessionTools = false;
     activeSince = Date.now();
     state.listening = true;
     state.feedback = "Listening in Arabic… begin the current ayah.";
@@ -622,6 +640,7 @@ function bindScreens() {
     );
   on("focus", () => {
     state.focusMode = !state.focusMode;
+    if (!state.focusMode) state.recitationPage = false;
     render();
   });
   on("test-alert", () => {
@@ -630,6 +649,23 @@ function bindScreens() {
     state.feedback =
       "Mistake alert preview. This is a test, not a detected mistake.";
     state.alertActive = true;
+    render();
+  });
+  on("theme", () => {
+    state.theme = state.theme === "white" ? "black" : "white";
+    writeLocal("hifdh-theme", state.theme);
+    render();
+  });
+  document.querySelectorAll("[data-theme]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        state.theme = b.dataset.theme;
+        writeLocal("hifdh-theme", state.theme);
+        render();
+      }),
+  );
+  on("session-tools", () => {
+    state.sessionTools = !state.sessionTools;
     render();
   });
   on("reader-settings", () => {
