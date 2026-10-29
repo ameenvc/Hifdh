@@ -89,3 +89,42 @@ test("only an explicitly finished attempt marks unrecited ending words missed", 
   assert.equal(result.details.length, 2);
   assert.ok(result.details.every((d) => d.type === "missed"));
 });
+
+import { chapter } from "../src/quran.js";
+import { advanceMatchedVerses } from "../src/recitation.js";
+test("actual Uthmani spelling of Alhamdulillah matches standard browser transcription", () => {
+  assert.equal(
+    compareRecitation(chapter(1).verses[1], "الحمد لله رب العالمين").complete,
+    true,
+  );
+  assert.equal(
+    compareRecitation(chapter(1).verses[3], "مالك يوم الدين").complete,
+    true,
+  );
+});
+test("standard-spelling correspondence does not accept a genuinely different word", () => {
+  assert.equal(
+    compareRecitation(chapter(1).verses[1], "الحمد لله رب المؤمنين").complete,
+    false,
+  );
+  assert.equal(
+    compareRecitation(chapter(1).verses[3], "ملك يوم الدين").complete,
+    false,
+  );
+});
+test("exact final ayahs progress without consuming an unfinished next ayah", () => {
+  const verses = chapter(1).verses;
+  const result = advanceMatchedVerses(
+    verses,
+    0,
+    "بسم الله الرحمن الرحيم الحمد لله",
+  );
+  assert.equal(result.verse, 1);
+  assert.equal(result.consumed, 4);
+  assert.equal(result.completed.length, 1);
+});
+test("extra final words at the end of a surah are not silently discarded", () => {
+  const result = advanceMatchedVerses(["بسم الله"], 0, "بسم الله نور");
+  assert.equal(result.ended, false);
+  assert.equal(result.consumed, 0);
+});

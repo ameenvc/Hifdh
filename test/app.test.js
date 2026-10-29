@@ -20,12 +20,26 @@ function app(fetchImpl = () => Promise.reject(Error("offline"))) {
   });
   const w = dom.window;
   w.fetch = fetchImpl;
-  let speech, player, tones=0;
-  w.AudioContext=class {
-    state='running';currentTime=0;destination={};
-    resume(){return Promise.resolve();}
-    createOscillator(){tones++;return {connect(){},frequency:{value:0},start(){},stop(){}};}
-    createGain(){return {connect(){},gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}}};}
+  let speech,
+    player,
+    tones = 0;
+  w.AudioContext = class {
+    state = "running";
+    currentTime = 0;
+    destination = {};
+    resume() {
+      return Promise.resolve();
+    }
+    createOscillator() {
+      tones++;
+      return { connect() {}, frequency: { value: 0 }, start() {}, stop() {} };
+    }
+    createGain() {
+      return {
+        connect() {},
+        gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+      };
+    }
   };
   w.SpeechRecognition = class {
     constructor() {
@@ -58,16 +72,18 @@ function app(fetchImpl = () => Promise.reject(Error("offline"))) {
     assert.ok(element);
     element.click();
   };
-  const say = (text) =>
+  const say = (text, final = true) =>
     speech.onresult({
-      results: [Object.assign([{ transcript: text }], { isFinal: true })],
+      results: [Object.assign([{ transcript: text }], { isFinal: final })],
     });
   return {
     w,
     click,
     tab,
     say,
-    get tones(){return tones;},
+    get tones() {
+      return tones;
+    },
     get player() {
       return player;
     },
@@ -269,18 +285,99 @@ test("sound preview and confirmed mismatches show the prominent red alert state"
   await tick();
   a.click("reader-settings");
   a.click("test-alert");
-  assert.equal(a.tones,1);
+  assert.equal(a.tones, 1);
   assert.ok(a.w.document.querySelector(".mistake-alert-active"));
   a.click("retry");
   assert.equal(a.w.document.querySelector(".mistake-alert-active"), null);
   a.click("listen");
   a.say("بسم نور الرحمن الرحيم");
-  assert.equal(a.tones,2);
-  a.click("sound");a.click("retry");a.click("listen");a.say("بسم نور الرحمن الرحيم");assert.equal(a.tones,2);
+  assert.equal(a.tones, 2);
+  a.click("sound");
+  a.click("retry");
+  a.click("listen");
+  a.say("بسم نور الرحمن الرحيم");
+  assert.equal(a.tones, 2);
   assert.ok(a.w.document.querySelector(".reader-shell.has-mistake"));
   assert.match(
     a.w.document.querySelector(".alert-label").textContent,
     /CHECK RECITATION/,
+  );
+  a.close();
+});
+
+test("memorization follows Bismillah into Alhamdulillah without false red or sounds", async () => {
+  const a = app();
+  await tick();
+  a.tab("Practice");
+  a.click("listen");
+  a.say("بسم الله الرحمن الرحيم");
+  assert.ok(
+    a.w.document.querySelector('[data-verse="1"][aria-current="true"]'),
+  );
+  a.say("بسم الله الرحمن الرحيم الحمد لله رب العالمين");
+  assert.ok(
+    a.w.document.querySelector('[data-verse="2"][aria-current="true"]'),
+  );
+  assert.equal(a.w.document.querySelectorAll(".word.mistake").length, 0);
+  assert.equal(a.w.document.querySelector(".has-mistake"), null);
+  assert.equal(a.tones, 0);
+  assert.ok(a.w.document.querySelectorAll(".word.correct").length >= 8);
+  assert.equal(a.w.localStorage.getItem("hifdh-mistakes"), null);
+  a.close();
+});
+test("one final speech result can span Bismillah and the next ayah", async () => {
+  const a = app();
+  await tick();
+  a.tab("Practice");
+  a.click("listen");
+  a.say("بسم الله الرحمن الرحيم الحمد لله رب العالمين");
+  assert.ok(
+    a.w.document.querySelector('[data-verse="2"][aria-current="true"]'),
+  );
+  assert.equal(a.w.document.querySelector(".word.mistake"), null);
+  assert.equal(a.tones, 0);
+  a.close();
+});
+test("provisional wrong words do not turn red, alert, save feedback or advance", async () => {
+  const a = app();
+  await tick();
+  a.tab("Practice");
+  a.click("listen");
+  a.say("بسم نور الرحمن الرحيم", false);
+  assert.equal(a.w.document.querySelector(".word.mistake"), null);
+  assert.equal(a.w.document.querySelector(".has-mistake"), null);
+  assert.equal(a.tones, 0);
+  assert.equal(a.w.localStorage.getItem("hifdh-mistakes"), null);
+  assert.ok(
+    a.w.document.querySelector('[data-verse="0"][aria-current="true"]'),
+  );
+  a.say("بسم الله الرحمن الرحيم", true);
+  assert.ok(
+    a.w.document.querySelector('[data-verse="1"][aria-current="true"]'),
+  );
+  assert.equal(a.tones, 0);
+  a.close();
+});
+test("all Fatiha ayahs in standard spelling complete without changing displayed Quran", async () => {
+  const a = app();
+  await tick();
+  a.tab("Practice");
+  a.click("listen");
+  a.say(
+    "بسم الله الرحمن الرحيم الحمد لله رب العالمين الرحمن الرحيم مالك يوم الدين إياك نعبد وإياك نستعين اهدنا الصراط المستقيم صراط الذين أنعمت عليهم غير المغضوب عليهم ولا الضالين",
+  );
+  assert.equal(a.w.document.querySelector(".word.mistake"), null);
+  assert.equal(a.tones, 0);
+  assert.equal(
+    a.w.document.querySelector("#listen").getAttribute("aria-pressed"),
+    "false",
+  );
+  assert.match(
+    a.w.document.querySelector("[role=status]").textContent,
+    /Session complete/,
+  );
+  assert.ok(
+    a.w.document.querySelector('[data-verse="6"][aria-current="true"]'),
   );
   a.close();
 });

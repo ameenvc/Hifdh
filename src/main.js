@@ -5,7 +5,11 @@ import "@fontsource/dm-sans/latin-600.css";
 import "@fontsource/manrope/latin-500.css";
 import "@fontsource/manrope/latin-700.css";
 import "./style.css";
-import { compareRecitation, normalize } from "./recitation.js";
+import {
+  compareRecitation,
+  normalize,
+  advanceMatchedVerses,
+} from "./recitation.js";
 import { dateKey } from "./activity.js";
 import {
   readerScreen,
@@ -311,7 +315,17 @@ function startReciting() {
   session.lang = "ar-SA";
   session.continuous = true;
   session.interimResults = true;
-  let lastFinal = "";
+  let lastFinal = "",
+    consumedWords = 0;
+  const startVerse = state.verse;
+  const passage = state.verses.map((verse, index) =>
+    practiceText(state.surah, index, verse),
+  );
+  const words = (text) =>
+    ayahTranscript(state.surah, startVerse, text, normalize)
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
   session.onresult = (e) => {
     if (recognition !== session) return;
     let transcript = "",
@@ -321,35 +335,78 @@ function startReciting() {
       if (e.results[i].isFinal)
         finalTranscript += e.results[i][0].transcript + " ";
     }
-    state.transcript = transcript.trim();
-    const result = compareRecitation(
-      activeText(),
-      ayahTranscript(state.surah, state.verse, transcript, normalize),
+    const allWords = words(transcript),
+      finalWords = words(finalTranscript);
+    const progression = advanceMatchedVerses(
+      passage,
+      state.verse,
+      finalWords.slice(consumedWords).join(" "),
     );
-    state.statuses = result.statuses;
-    state.extraWords = result.extraWords;
-    state.readerResults[`${state.surah}:${state.verse}`] = result.statuses;
-    if (finalTranscript && finalTranscript !== lastFinal) {
-      const confirmed = compareRecitation(
-        activeText(),
-        ayahTranscript(state.surah, state.verse, finalTranscript, normalize),
-      );
-      state.alertActive = Boolean(
-        confirmed.extraWords || confirmed.statuses.includes("mistake"),
-      );
-      if (state.alertActive) tone();
-      saveAttempt(finalTranscript, confirmed);
-      lastFinal = finalTranscript;
+    if (progression.completed.length) {
+      // Remove feedback for this still-open attempt if its final recognition
+      // now matches. Historical feedback from earlier attempts stays intact.
+      if (state.attemptId) {
+        state.mistakes = state.mistakes.filter((m) => m.id !== state.attemptId);
+        writeLocal("hifdh-mistakes", state.mistakes);
+      }
+      for (const completed of progression.completed) {
+        state.readerResults[`${state.surah}:${completed.verse}`] = passage[
+          completed.verse
+        ]
+          .split(/\s+/)
+          .map(() => "correct");
+      }
+      consumedWords += progression.consumed;
+      state.verse = Math.min(progression.verse, state.verses.length - 1);
+      resetAttempt();
+      lastFinal = "";
+      if (progression.ended) {
+        const last = progression.completed.at(-1);
+        state.transcript = last.text;
+        state.statuses = state.readerResults[`${state.surah}:${state.verse}`];
+        stop();
+        state.feedback =
+          "All remaining ayahs matched. Session complete; pronunciation and tajweed are not assessed.";
+        render();
+        scrollToSelected();
+        return;
+      }
     }
-    state.feedback = result.extraWords
-      ? `Possible extra or repeated words: ${result.extraWords}. Check the recognized text below.`
-      : result.statuses.includes("mistake")
-        ? "Possible mismatch. Red words may be missed or different; check the recognized text."
-        : result.complete
-          ? "All ayah words matched. Pronunciation and tajweed still need a teacher’s review."
-          : "Listening… words appear as your browser recognizes them.";
+    const remaining = allWords.slice(consumedWords).join(" ");
+    const finalRemaining = finalWords.slice(consumedWords).join(" ");
+    const result = compareRecitation(activeText(), remaining);
+    const confirmed = compareRecitation(activeText(), finalRemaining);
+    // Browser interim hypotheses often revise words. Keep uncertain words
+    // hidden until corrected/final rather than flashing false red mistakes.
+    state.statuses = result.statuses.map((status, index) =>
+      confirmed.statuses[index] === "mistake"
+        ? "mistake"
+        : status === "mistake"
+          ? "pending"
+          : status,
+    );
+    state.transcript = remaining;
+    state.extraWords = confirmed.extraWords;
+    state.readerResults[`${state.surah}:${state.verse}`] = state.statuses;
+    state.alertActive = Boolean(
+      confirmed.extraWords || confirmed.statuses.includes("mistake"),
+    );
+    if (finalRemaining && finalRemaining !== lastFinal) {
+      if (state.alertActive) tone();
+      saveAttempt(finalRemaining, confirmed);
+      lastFinal = finalRemaining;
+    }
+    state.feedback = state.alertActive
+      ? "Possible mismatch in the final recognized text. Check what your browser heard."
+      : remaining
+        ? "Listening… keep reciting. Uncertain words wait for recognition to settle."
+        : progression.completed.length
+          ? "Ayah matched. Continue reciting the next ayah."
+          : "Listening… begin the selected ayah.";
     render();
+    if (progression.completed.length) scrollToSelected();
   };
+
   session.onerror = (e) => {
     if (recognition !== session) return;
     state.feedback =

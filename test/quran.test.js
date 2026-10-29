@@ -100,3 +100,8 @@ test("optional unnumbered opening is accepted only before first ayah of applicab
     "بسم الله الرحمن الرحيم",
   );
 });
+
+test("a partially recognized optional Bismillah is not mistaken for the first ayah", () => {
+  assert.equal(ayahTranscript(112, 0, "بسم الله", normalize), "");
+  assert.equal(ayahTranscript(112, 0, "قل هو", normalize), "قل هو");
+});

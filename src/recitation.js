@@ -1,18 +1,12 @@
-export function normalize(text) {
-  return text
-    .normalize("NFD")
-    .replace(/[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]/g, "")
-    .replace(/[أإآٱ]/g, "ا")
-    .replace(/ى/g, "ي")
-    .replace(/ـ/g, "")
-    .replace(/[^\u0621-\u064a\s]/g, "")
-    .trim();
-}
+import { normalize } from "./arabic.js";
+export { normalize } from "./arabic.js";
+import comparisonWords from "./data/comparison-words.json" with { type: "json" };
+
 // Align the spoken words against a prefix of the ayah. An omitted or repeated
 // word should not cause every later word to be marked as a substitution.
 export function compareRecitation(expected, spoken, { finished = false } = {}) {
   const original = expected.trim().split(/\s+/);
-  const target = original.map(normalize);
+  const target = original.map(matchingWord);
   const actual = normalize(spoken).split(/\s+/).filter(Boolean);
   const statuses = target.map(() => "pending");
   const dp = Array.from({ length: target.length + 1 }, (_, i) =>
@@ -92,4 +86,41 @@ export function compareRecitation(expected, spoken, { finished = false } = {}) {
 }
 export function compareWords(expected, spoken) {
   return compareRecitation(expected, spoken).statuses;
+}
+
+// Use the companion standard-spelling text only for comparison. The Uthmani
+// words rendered by the reader stay exactly as stored in the source snapshot.
+export function matchingWord(word) {
+  return comparisonWords[word] || normalize(word);
+}
+
+// Move forward only over complete, exactly matched FINAL ayahs. A provisional
+// speech result must never advance the reader or consume the next ayah's words.
+export function advanceMatchedVerses(verses, start, spoken) {
+  const actual = spoken.trim().split(/\s+/).filter(Boolean);
+  let verse = start,
+    consumed = 0;
+  const completed = [];
+  while (verse < verses.length) {
+    const expected = verses[verse].trim().split(/\s+/).map(matchingWord);
+    if (actual.length - consumed < expected.length) break;
+    if (
+      verse === verses.length - 1 &&
+      actual.length - consumed > expected.length
+    )
+      break;
+    if (
+      !expected.every(
+        (word, index) => word === normalize(actual[consumed + index]),
+      )
+    )
+      break;
+    completed.push({
+      verse,
+      text: actual.slice(consumed, consumed + expected.length).join(" "),
+    });
+    consumed += expected.length;
+    verse++;
+  }
+  return { verse, consumed, completed, ended: verse === verses.length };
 }

@@ -69,7 +69,7 @@ export function ayahTranscript(surah, index, spoken, normalize) {
   const words = spoken.trim().split(/\s+/),
     opening = normalize(BISMILLAH).split(/\s+/);
   if (
-    words.length >= 4 &&
+    words.length > 0 &&
     words.slice(0, 4).every((word, i) => normalize(word) === opening[i])
   )
     return words.slice(4).join(" ");
