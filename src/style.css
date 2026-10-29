@@ -2157,3 +2157,857 @@ footer {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
+/* Midnight reading palette and an uninterrupted Quran canvas. */
+:root {
+  color-scheme: dark;
+  --canvas: #0c1518;
+  --surface: #142125;
+  --raised: #1b2c2f;
+  --line: #2b4143;
+  --text: #e9f2e9;
+  --muted: #a1b5ad;
+  --accent: #b9d59a;
+  --red: #ff7985;
+  background: var(--canvas);
+  color: var(--text);
+}
+body {
+  background: var(--canvas);
+  color: var(--text);
+}
+.sidebar,
+header {
+  background: #101c20;
+  border-color: var(--line);
+}
+.brand {
+  color: #e5f2d8;
+}
+.brand-dot {
+  color: #b7cd92;
+}
+.workspace-label,
+.sidebar-bottom > span {
+  color: #a2b5a8;
+}
+.nav-item {
+  color: #a7bab0;
+}
+.nav-item.active {
+  background: #263c35;
+  color: #d7eec1;
+}
+.nav-item small {
+  background: #3a5141;
+  color: #d3e8bf;
+}
+.sidebar-bottom p {
+  color: #b0c6af;
+}
+.profile {
+  border-color: var(--line);
+}
+.profile small,
+.profile > span {
+  color: #a5b9aa;
+}
+.avatar {
+  background: #2f4136;
+  border-color: #203029;
+  color: #d4e8bd;
+}
+.breadcrumb,
+.today {
+  color: #b0c1ad;
+}
+.breadcrumb span {
+  color: #60796c;
+}
+.eyebrow {
+  color: #c0d5ad;
+}
+.eyebrow span,
+.kicker {
+  color: #a5b99a;
+}
+.page-title p,
+.screen-heading p {
+  color: var(--muted);
+}
+button {
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
+}
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+button:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid #bddc9a;
+  outline-offset: 3px;
+}
+button svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+  pointer-events: none;
+}
+.listen-button,
+.secondary-button,
+.sound-button,
+.recall-tools button,
+.arrow-button,
+.reader-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  min-height: 44px;
+}
+.listen-button {
+  background: #bbd99d;
+  color: #14271d;
+  border: 1px solid #c7e6ab;
+  box-shadow: 0 4px 18px #0003;
+}
+.listen-button:hover {
+  background: #cce9b0;
+  box-shadow: 0 4px 22px #b4dc7e26;
+}
+.listen-button.is-listening {
+  background: #e2efcf;
+  border-color: #d1e7b6;
+  box-shadow: 0 0 0 4px #b4dc7e1a;
+}
+.secondary-button {
+  background: #203336;
+  border: 1px solid #3d5553;
+  color: #d1e0d2;
+}
+.secondary-button:hover {
+  background: #2a4243;
+  border-color: #8da982;
+}
+.arrow-button {
+  background: #223635;
+  color: #d5e8c4;
+  border: 1px solid #3a514a;
+  width: 44px;
+  height: 44px;
+}
+.arrow-button:hover {
+  background: #334b3f;
+}
+.reader-icon {
+  color: #c6d8c4;
+  border: 1px solid transparent;
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+}
+.reader-icon:hover,
+.reader-icon.bookmarked {
+  background: #2a4038;
+  border-color: #466148;
+  color: #d6edbd;
+}
+.text-button {
+  color: #c1d8a8;
+}
+.segmented {
+  background: #0e1b1f;
+  border: 1px solid #2e4241;
+  padding: 3px;
+  border-radius: 10px;
+}
+.segmented button {
+  color: #9eb49f;
+  min-height: 37px;
+  font-size: 11px;
+  padding: 8px 16px;
+  border-radius: 7px;
+}
+.segmented button.selected {
+  background: #314b3b;
+  color: #e0efce;
+  box-shadow: 0 2px 6px #0002;
+}
+.recall-tools button {
+  color: #bfd3b2;
+  background: #182a2c;
+  border: 1px solid #344e47;
+  border-radius: 8px;
+  font-size: 11px;
+  padding: 8px 12px;
+}
+.recall-tools button:hover {
+  background: #294239;
+  border-color: #65835a;
+}
+.sound-button {
+  background: #321e28;
+  border: 1px solid #7e3d4a;
+  border-radius: 8px;
+  color: #ff9daa;
+  font-size: 10px;
+  padding: 8px 11px;
+}
+.sound-button.enabled {
+  background: #40232d;
+  border-color: #b45262;
+  color: #ffc0c7;
+}
+.sound-button:hover {
+  background: #552935;
+}
+.sound-button svg {
+  width: 16px;
+  height: 16px;
+}
+.reader-view {
+  height: 100dvh;
+  overflow: hidden;
+}
+.reader-view > header {
+  display: none;
+}
+.reader-content {
+  height: 100%;
+  padding: 16px;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+}
+.reader-content > .reader-intro,
+.reader-content > footer {
+  display: none;
+}
+.reader-shell {
+  background: #121f23;
+  border-color: #2d4242;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  max-width: 1200px;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 15px 60px #0002;
+}
+.reader-toolbar {
+  padding: 10px 18px;
+  border-color: #2b4140;
+  flex-shrink: 0;
+  background: #17282c;
+}
+.reader-chapter strong {
+  color: #e4f0dc;
+  font-size: 15px;
+}
+.reader-chapter span {
+  color: #a9bfa7;
+  font-size: 10px;
+}
+.reader-mode {
+  padding: 10px 21px;
+  flex-shrink: 0;
+  gap: 12px;
+  background: #142226;
+}
+.reader-mode > span {
+  margin-left: auto;
+  font-size: 9px;
+  line-height: 1.8;
+  color: #9bb69d;
+}
+.reader-mode a {
+  color: #c1d6ae;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.reader-settings {
+  background: #1c3033;
+  border-color: #3a504a;
+  flex-shrink: 0;
+  max-height: 35vh;
+  overflow: auto;
+  align-items: center;
+  padding: 14px 20px;
+}
+.reader-settings label {
+  color: #bbceaf;
+}
+.reader-settings input[type="number"],
+.reader-settings select {
+  background: #102326;
+  border-color: #496148;
+  color: #dbeacb;
+}
+.reader-settings input[type="range"] {
+  accent-color: #bed99d;
+}
+.reader-settings .secondary-button {
+  min-height: 38px;
+}
+.mushaf {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  background: #101e22;
+  padding: 12px 38px 30px;
+  scrollbar-color: #526d55 #15282b;
+  overscroll-behavior: contain;
+}
+.chapter-ornament {
+  background: #192c2b;
+  border-color: #39523d;
+  outline-color: #263d34;
+  margin: 10px 5px 22px;
+  padding: 8px;
+}
+.chapter-ornament h2 {
+  color: #dcebbe;
+  font-size: 29px;
+}
+.chapter-ornament > span {
+  color: #8da778;
+}
+.basmala {
+  font:
+    31px/1.85 Amiri,
+    serif;
+  text-align: center;
+  margin: 8px 0 25px;
+  color: #d4e7b8;
+  padding: 8px;
+  border-radius: 8px;
+  word-spacing: 2px;
+}
+.basmala .masked-word {
+  font-size: 15px;
+}
+.mushaf-text {
+  color: #ecf1e4;
+  line-height: 2.5;
+  text-align: justify;
+  word-spacing: 3px;
+}
+.current-verse {
+  background: #284137;
+  box-shadow: 0 0 0 3px #284137;
+  color: #fff6d9;
+}
+.verse-marker {
+  background: #152a2a;
+  border-color: #7a976e;
+  outline-color: #3e5945;
+  color: #bbd49c;
+  min-width: 27px;
+}
+.verse-marker[aria-current="true"] {
+  background: #bad79a;
+  color: #182b20;
+  border-color: #d2e4b7;
+  outline-color: #72945d;
+}
+.reader-controls {
+  background: #17282c;
+  border-color: #314944;
+  padding: 11px 20px 10px;
+  flex-shrink: 0;
+}
+.selected-ayah-label > span {
+  color: #a7be9e;
+}
+.selected-ayah-label .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  padding: 5px 0;
+}
+.selected-ayah-label .text-button svg {
+  width: 14px;
+  height: 14px;
+}
+.reader-controls .recitation-status {
+  background: #1d3331;
+  color: #bed3b2;
+  border: 1px solid #355342;
+  margin: 7px 0 10px;
+  min-height: 35px;
+  padding: 8px 12px;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.recitation-status.has-error,
+.reader-controls .recitation-status.has-error,
+.mistake-alert-active {
+  background: #3c202b !important;
+  border-color: #d05b70 !important;
+  color: #ffbdc6 !important;
+}
+.recitation-status.has-error > span {
+  color: #ff7a8d;
+}
+.alert-label {
+  color: #ff8495;
+  font-size: 9px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.reader-shell.has-mistake {
+  border-color: #cf586c;
+  box-shadow:
+    0 0 0 1px #cf586c44,
+    0 10px 50px #0002;
+}
+.mistake-alert-active {
+  animation: mistake-pulse 0.6s ease-out;
+}
+.word.mistake,
+.error-text {
+  background: #542535;
+  color: #ff98a5;
+  border-color: #ff8296;
+}
+.word.correct {
+  background: #263f33;
+  color: #c3e4a3;
+}
+.masked-word {
+  background: #203333;
+  color: #809b84;
+}
+.reader-controls .recall-tools {
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.reader-controls .recall-tools button {
+  min-height: 34px;
+  font-size: 10px;
+  padding: 6px 11px;
+}
+.reader-controls .recall-tools svg {
+  width: 15px;
+  height: 15px;
+}
+.reader-main-actions {
+  gap: 10px;
+}
+.reader-main-actions > .listen-button {
+  min-width: 180px;
+  font-size: 12px;
+  padding: 12px 22px;
+}
+.reader-main-actions > .secondary-button {
+  min-width: 110px;
+  font-size: 11px;
+}
+.recognition-note {
+  font-size: 8px;
+  color: #9eb79c;
+  margin: 8px 0 0;
+}
+.reader-controls .transcript {
+  background: #132426;
+  border-color: #365143;
+  margin-bottom: 10px;
+  max-height: 110px;
+  overflow: auto;
+  padding: 10px;
+}
+.transcript summary,
+.transcript small,
+.transcript > span {
+  color: #b2c7a6;
+}
+.transcript p {
+  color: #d2e6bb;
+}
+.focus-reading .sidebar {
+  display: none;
+}
+.focus-reading main {
+  margin-left: 0;
+}
+.focus-reading .reader-shell {
+  max-width: 1400px;
+}
+.focus-reading .reader-content {
+  padding: 8px;
+}
+.library-card,
+.empty-state,
+.mistake-card,
+.verse-search,
+.search-result,
+.progress-stats article,
+.activity-card,
+.memorized-card,
+.progress-page {
+  background: #15262a;
+  border-color: #334a43;
+  color: #e3eed8;
+}
+.library-card:hover {
+  background: #253b33;
+}
+.library-card h2,
+.library-card p {
+  color: #e1edcf;
+}
+.library-card small,
+.chapter-number {
+  color: #a8bd92;
+}
+.library-note,
+.search-explanation,
+.search-status,
+.screen-heading p,
+.progress-list > p,
+.empty-state p {
+  color: #a9bda4;
+}
+.review-notice {
+  background: #1e332e;
+  border-color: #3b5543;
+  color: #c0d3b1;
+}
+.review-filters button {
+  background: #182c2d;
+  border-color: #3b5148;
+  color: #b7caa8;
+}
+.review-filters button.active {
+  background: #bad69c;
+  color: #192c20;
+  border-color: #cadfb0;
+}
+.count-chip {
+  background: #2a4335;
+  color: #c4dfaa;
+}
+.mistake-card-heading small {
+  color: #a6bc9c;
+}
+.verse-chip {
+  background: #1a3030;
+  border-color: #476047;
+  color: #c0d3a9;
+}
+.mistake-types > span {
+  background: #412831;
+  color: #ffadbb;
+}
+.comparison {
+  border-color: #3a5046;
+}
+.comparison > div + div {
+  background: #1b3030;
+  border-color: #3a5046;
+}
+.comparison label {
+  color: #a6ba9b;
+}
+.comparison p {
+  color: #e0ebd1;
+}
+.detail-list li {
+  border-color: #31473d;
+}
+.detail-list li > span:first-child {
+  color: #d3b4a6;
+}
+.detail-list li > span:last-child {
+  color: #ffadb7;
+}
+.verse-search input {
+  background: #0f2225;
+  border-color: #425d4a;
+  color: #e5f0d5;
+}
+.search-result > p {
+  color: #e5efd8;
+}
+.progress-stats article > span,
+.progress-stats p,
+.progress-stats small,
+.chart-heading > span {
+  color: #b0c4a3;
+}
+.progress-stats strong {
+  color: #c1dfa1;
+}
+.level-0 {
+  background: #253c34;
+}
+.level-1 {
+  background: #466d4b;
+}
+.level-2 {
+  background: #668f5d;
+}
+.level-3 {
+  background: #89ae70;
+}
+.level-4 {
+  background: #bad99a;
+}
+.activity-legend span,
+.bar-column > span,
+.bar-column > label {
+  color: #a8bf9d;
+}
+.bar-chart {
+  border-color: #344e3f;
+}
+.bar {
+  background: #a5ca86;
+  border-color: #cce5ae;
+}
+.manual-session {
+  background: #1d352d;
+  border-color: #415d43;
+}
+.manual-session p,
+.manual-session label {
+  color: #b0c59e;
+}
+.manual-session input {
+  background: #122528;
+  border-color: #55704b;
+  color: #e2efca;
+}
+.progress-list > button {
+  border-color: #354e3e;
+  color: #c2daa9;
+}
+footer {
+  color: #95ac91;
+}
+.date-pill {
+  background: #1e322c;
+  border-color: #3e5540;
+  color: #c2d2ad;
+}
+@keyframes mistake-pulse {
+  0% {
+    box-shadow: 0 0 0 4px #f25b7a55;
+  }
+  100% {
+    box-shadow: 0 0 0 0 #f25b7a00;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+  .mistake-alert-active,
+  .live-dot {
+    animation: none;
+  }
+}
+@media (max-width: 850px) {
+  .reader-content {
+    padding: 10px;
+  }
+  .reader-toolbar {
+    padding: 9px 12px;
+  }
+  .mushaf {
+    padding: 10px 27px 25px;
+  }
+  .reader-mode > span {
+    max-width: 150px;
+    font-size: 8px;
+  }
+  .reader-main-actions > .listen-button {
+    min-width: 160px;
+  }
+  .sidebar-bottom {
+    padding-bottom: 15px;
+  }
+}
+@media (max-width: 520px) {
+  .reader-view {
+    height: calc(100dvh - 72px - env(safe-area-inset-bottom, 0px));
+    margin-bottom: 0;
+    padding: 0;
+  }
+  .reader-content {
+    padding: 0;
+    max-width: none;
+  }
+  .reader-shell {
+    border: 0;
+    border-radius: 0;
+    max-width: none;
+  }
+  .reader-toolbar {
+    padding: 8px 10px;
+    gap: 4px;
+  }
+  .reader-icon {
+    width: 37px;
+    height: 42px;
+    min-height: 42px;
+  }
+  .reader-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  .reader-chapter strong {
+    font-size: 13px;
+  }
+  .reader-chapter span {
+    font-size: 9px;
+  }
+  .reader-mode {
+    padding: 7px 13px;
+    gap: 9px;
+  }
+  .reader-mode > span {
+    font-size: 0;
+    max-width: 41px;
+    line-height: 1.5;
+  }
+  .reader-mode > span a {
+    font-size: 8px;
+  }
+  .reader-mode .sound-button {
+    min-height: 36px;
+    padding: 7px 9px;
+    font-size: 9px;
+    margin-left: auto;
+    gap: 5px;
+  }
+  .segmented button {
+    padding: 7px 13px;
+    min-height: 34px;
+  }
+  .mushaf {
+    max-height: none;
+    min-height: 0;
+    padding: 8px 23px 24px;
+  }
+  .mushaf-text {
+    line-height: 2.35;
+    word-spacing: 2px;
+    font-size: var(--quran-size);
+  }
+  .chapter-ornament {
+    padding: 5px;
+    margin: 8px 5px 18px;
+  }
+  .chapter-ornament h2 {
+    font-size: 25px;
+  }
+  .basmala {
+    font-size: 28px;
+    line-height: 1.9;
+    padding: 5px;
+    margin: 4px 0 18px;
+  }
+  .reader-controls {
+    padding: 8px 12px;
+  }
+  .reader-controls .recitation-status {
+    font-size: 9px;
+    padding: 7px 9px;
+    gap: 6px;
+    margin: 6px 0 8px;
+  }
+  .alert-label {
+    font-size: 8px;
+    white-space: normal;
+    max-width: 75px;
+  }
+  .reader-controls .recall-tools {
+    gap: 5px;
+    margin-bottom: 8px;
+    flex-wrap: nowrap;
+  }
+  .reader-controls .recall-tools button {
+    font-size: 9px;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .reader-controls .recall-tools svg {
+    width: 13px;
+    height: 13px;
+  }
+  .reader-main-actions {
+    gap: 7px;
+  }
+  .reader-main-actions > .listen-button {
+    min-width: 140px;
+    font-size: 11px;
+    padding: 10px 12px;
+    gap: 7px;
+    flex: 1;
+  }
+  .reader-main-actions > .secondary-button {
+    min-width: 83px;
+    font-size: 10px;
+    padding: 10px;
+    gap: 5px;
+  }
+  .reader-main-actions > .listen-button svg,
+  .reader-main-actions > .secondary-button svg {
+    width: 17px;
+    height: 17px;
+  }
+  .arrow-button {
+    width: 36px;
+    height: 44px;
+    border-radius: 9px;
+  }
+  .arrow-button svg {
+    width: 18px;
+    height: 18px;
+  }
+  .recognition-note {
+    margin-top: 7px;
+    font-size: 7px;
+    line-height: 1.6;
+  }
+  .reader-controls .transcript {
+    max-height: 90px;
+  }
+  .focus-reading .reader-view {
+    height: 100dvh;
+    margin-bottom: 0;
+  }
+  .focus-reading .reader-content {
+    padding: 0;
+  }
+  .focus-reading .reader-controls {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .reader-settings {
+    max-height: 25vh;
+    padding: 12px;
+  }
+  .sidebar {
+    background: #101f22;
+    border-color: #354c41;
+  }
+  .sidebar nav .nav-item.active {
+    background: #2d4737;
+  }
+  .content:not(.reader-content) {
+    padding-top: 25px;
+  }
+}

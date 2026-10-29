@@ -20,7 +20,13 @@ function app(fetchImpl = () => Promise.reject(Error("offline"))) {
   });
   const w = dom.window;
   w.fetch = fetchImpl;
-  let speech, player;
+  let speech, player, tones=0;
+  w.AudioContext=class {
+    state='running';currentTime=0;destination={};
+    resume(){return Promise.resolve();}
+    createOscillator(){tones++;return {connect(){},frequency:{value:0},start(){},stop(){}};}
+    createGain(){return {connect(){},gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}}};}
+  };
   w.SpeechRecognition = class {
     constructor() {
       speech = this;
@@ -61,6 +67,7 @@ function app(fetchImpl = () => Promise.reject(Error("offline"))) {
     click,
     tab,
     say,
+    get tones(){return tones;},
     get player() {
       return player;
     },
@@ -161,41 +168,22 @@ test("manual sessions update real activity and progress without invented data", 
   ); // Actual day + legend.
   a.close();
 });
-test("search handles matched Arabic phrases and opens the selected verse", async () => {
-  const a = app(async (url) => {
-    if (url.includes("/search/"))
-      return {
-        ok: true,
-        json: async () => ({
-          data: {
-            count: 1,
-            matches: [
-              {
-                surah: { number: 1, englishName: "Al-Faatiha" },
-                numberInSurah: 2,
-                text: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-              },
-            ],
-          },
-        }),
-      };
-    throw Error("offline");
-  });
+test("bundled phrase search works offline and opens the selected verse", async () => {
+  const a = app();
   await tick();
   a.tab("Search");
   a.w.document.getElementById("search-query").value = "الحمد";
   a.w.document
     .getElementById("verse-search")
     .dispatchEvent(new a.w.Event("submit", { cancelable: true }));
-  await tick();
-  assert.equal(a.w.document.querySelectorAll(".search-result").length, 1);
+  assert.ok(a.w.document.querySelectorAll(".search-result").length > 1);
   a.w.document.querySelector("[data-result]").click();
   assert.ok(
     a.w.document.querySelector('[data-verse="1"][aria-current="true"]'),
   );
   a.close();
 });
-test("offline search fails visibly and old speech cannot change another verse", async () => {
+test("offline search returns real results and old speech cannot change another verse", async () => {
   const a = app();
   await tick();
   a.click("listen");
@@ -216,7 +204,7 @@ test("offline search fails visibly and old speech cannot change another verse", 
   await tick();
   assert.match(
     a.w.document.querySelector(".search-status").textContent,
-    /unavailable/,
+    /matching verses/,
   );
   a.close();
 });
@@ -235,6 +223,64 @@ test("audio repeat stops after the requested count", async () => {
   assert.match(
     a.w.document.querySelector("[role=status]").textContent,
     /Listening complete/,
+  );
+  a.close();
+});
+
+test("Memorize opens the full reader with concealed words and focus is reversible", async () => {
+  const a = app();
+  await tick();
+  a.tab("Practice");
+  assert.ok(a.w.document.querySelector(".reader-shell"));
+  assert.ok(a.w.document.querySelector(".current-verse .masked-word"));
+  a.click("focus");
+  assert.ok(a.w.document.body.classList.contains("focus-reading"));
+  a.click("focus");
+  assert.ok(!a.w.document.body.classList.contains("focus-reading"));
+  a.close();
+});
+test("all chapters open offline with Bismillah separated and source numbering unchanged", async () => {
+  const a = app();
+  await tick();
+  a.w.document.querySelector('[data-tab="Library"]').click();
+  assert.equal(a.w.document.querySelectorAll(".library-card").length, 114);
+  a.w.document.querySelector('[data-surah="112"]').click();
+  assert.ok(a.w.document.querySelector(".basmala"));
+  assert.equal(
+    a.w.document.querySelectorAll(".basmala .verse-marker").length,
+    0,
+  );
+  assert.equal(
+    a.w.document.querySelectorAll(".mushaf-text .verse-marker").length,
+    4,
+  );
+  assert.match(
+    a.w.document.querySelector(".current-verse").textContent,
+    /قُلْ/,
+  );
+  a.w.document.querySelector('[data-tab="Library"]').click();
+  a.w.document.querySelector('[data-surah="9"]').click();
+  assert.equal(a.w.document.querySelector(".basmala"), null);
+  assert.equal(a.w.document.querySelectorAll(".verse-marker").length, 129);
+  a.close();
+});
+test("sound preview and confirmed mismatches show the prominent red alert state", async () => {
+  const a = app();
+  await tick();
+  a.click("reader-settings");
+  a.click("test-alert");
+  assert.equal(a.tones,1);
+  assert.ok(a.w.document.querySelector(".mistake-alert-active"));
+  a.click("retry");
+  assert.equal(a.w.document.querySelector(".mistake-alert-active"), null);
+  a.click("listen");
+  a.say("بسم نور الرحمن الرحيم");
+  assert.equal(a.tones,2);
+  a.click("sound");a.click("retry");a.click("listen");a.say("بسم نور الرحمن الرحيم");assert.equal(a.tones,2);
+  assert.ok(a.w.document.querySelector(".reader-shell.has-mistake"));
+  assert.match(
+    a.w.document.querySelector(".alert-label").textContent,
+    /CHECK RECITATION/,
   );
   a.close();
 });

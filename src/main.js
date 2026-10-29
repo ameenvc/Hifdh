@@ -13,21 +13,14 @@ import {
   searchScreen,
   progressScreen,
 } from "./screens.js";
-const fatiha = [
-  "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-  "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-  "الرَّحْمَٰنِ الرَّحِيمِ",
-  "مَالِكِ يَوْمِ الدِّينِ",
-  "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
-  "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
-  "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
-];
-const surahs = [
-  { number: 1, englishName: "Al-Faatiha", name: "الفاتحة", numberOfAyahs: 7 },
-  { number: 112, englishName: "Al-Ikhlaas", name: "الإخلاص", numberOfAyahs: 4 },
-  { number: 113, englishName: "Al-Falaq", name: "الفلق", numberOfAyahs: 5 },
-  { number: 114, englishName: "An-Naas", name: "الناس", numberOfAyahs: 6 },
-];
+import {
+  chapter,
+  surahs,
+  practiceText,
+  searchQuran,
+  ayahTranscript,
+} from "./quran.js";
+const initialChapter = chapter(1);
 let saved = {};
 try {
   saved = JSON.parse(localStorage.getItem("hifdh-progress") || "{}") || {};
@@ -41,8 +34,8 @@ function readLocal(key, fallback) {
 }
 let state = {
   surah: 1,
-  verses: fatiha,
-  ayahNumbers: [1, 2, 3, 4, 5, 6, 7],
+  verses: initialChapter.verses,
+  ayahNumbers: initialChapter.ayahNumbers,
   verse: 0,
   hidden: false,
   tab: "Reader",
@@ -71,6 +64,8 @@ let state = {
   attemptId: null,
   pendingDelete: false,
   loading: false,
+  focusMode: false,
+  alertActive: false,
 };
 let recognition,
   audio,
@@ -103,6 +98,8 @@ function persist() {
 }
 function render() {
   const s = current();
+  const reading = state.tab === "Reader" || state.tab === "Practice";
+  document.body.classList.toggle("focus-reading", reading && state.focusMode);
   const scrollTop = document.querySelector(".mushaf")?.scrollTop || 0;
   document.querySelector("#app").innerHTML =
     `<aside class="sidebar"><a class="brand" href="#">◈ <span>hifdh<span class="brand-dot">.</span></span></a><div class="workspace-label">YOUR PERSONAL SANCTUARY</div><nav>${[
@@ -119,20 +116,15 @@ function render() {
       .join(
         "",
       )}</nav><div class="sidebar-bottom"><div class="small-flower">✧</div><p>Little by little,<br>the heart remembers.</p><span>YOUR JOURNEY, YOUR PACE</span></div><div class="profile"><div class="avatar">Y</div><div>Your journey<small>Growing every day</small></div><span>↗</span></div></aside>
-<main class="${state.tab === "Reader" ? "reader-view" : ""}"><header><div class="breadcrumb">My workspace <span>/</span> ${state.tab === "Practice" ? "Memorization" : escape(state.tab)}</div><div class="header-right"><span class="today">☀ &nbsp; A good day to begin</span><div class="avatar mini">Y</div></div></header><section class="content ${state.tab === "Reader" ? "reader-content" : ""}">${state.tab === "Reader" ? '<div class="reader-intro"><span class="kicker">YOUR QURAN, CLOSE TO HEART</span><h1>Read. Remember. Return.</h1><button class="text-button" id="resume-bookmark">' + (state.bookmark ? "Resume bookmark →" : "Choose a surah →") + "</button></div>" : ""}<div class="eyebrow">السَّلَامُ عَلَيْكُمْ <span>PEACE BE UPON YOU</span></div><div class="page-title"><div><h1>A little closer, every ayah.</h1><p>Make room for the Quran. Let each verse settle in your heart.</p></div><span class="date-pill">✧ &nbsp; Your daily connection</span></div>
-${state.tab === "Reader" ? readerScreen(state, surahs, readerWords, recitationFeedback) : state.tab === "Practice" ? practice(s) : state.tab === "Library" ? library() : state.tab === "Mistakes" ? mistakesScreen(state) : state.tab === "Search" ? searchScreen(state) : progressScreen(state, surahs)}
-<footer><span>◈ &nbsp; A mindful journey with the words of Allah.</span><span>Consistency over perfection.</span></footer></section></main>`;
+<main class="${reading ? "reader-view" : ""}"><header><div class="breadcrumb">My workspace <span>/</span> ${state.tab === "Practice" ? "Memorization" : escape(state.tab)}</div><div class="header-right"><span class="today">☀ &nbsp; A good day to begin</span><div class="avatar mini">Y</div></div></header><section class="content ${reading ? "reader-content" : ""}">${reading ? '<div class="reader-intro"><span class="kicker">YOUR QURAN, CLOSE TO HEART</span><h1>Read. Remember. Return.</h1><button class="text-button" id="resume-bookmark">' + (state.bookmark ? "Resume bookmark →" : "Choose a surah →") + "</button></div>" : ""}<div class="eyebrow">السَّلَامُ عَلَيْكُمْ <span>PEACE BE UPON YOU</span></div><div class="page-title"><div><h1>A little closer, every ayah.</h1><p>Make room for the Quran. Let each verse settle in your heart.</p></div><span class="date-pill">✧ &nbsp; Your daily connection</span></div>
+${reading ? readerScreen(state, surahs, readerWords, recitationFeedback) : state.tab === "Library" ? library() : state.tab === "Mistakes" ? mistakesScreen(state) : state.tab === "Search" ? searchScreen(state) : progressScreen(state, surahs)}
+<footer><span>◈ &nbsp; Quran text: <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project</a> · Uthmani</span><span>Consistency over perfection.</span></footer></section></main>`;
   bind();
   const mushaf = document.querySelector(".mushaf");
   if (mushaf) mushaf.scrollTop = scrollTop;
 }
-function practice(s) {
-  return `<div class="overview"><div class="overview-card"><span class="stat-icon">▤</span><div><small>AYAH BY AYAH</small><strong>${Object.keys(state.saved).length} <span>memorized</span></strong></div></div><div class="overview-card"><span class="stat-icon gold">✧</span><div><small>YOUR DAILY INTENTION</small><strong>5 <span>ayahs a day</span></strong></div><div class="overview-card quote"><span>“</span><p>The best of you are those who learn<br>the Quran and teach it.<small>SAHIH AL-BUKHARI 5027</small></p></div></div>
-<div class="section-heading"><h2>Your memorization space</h2><span><i></i> A moment of focus</span></div><div class="practice-layout"><article class="quran-card"><div class="card-toolbar"><div class="segmented">${["Read & reflect", "Recall & recite"].map((m) => `<button data-mode="${m}" class="${m === state.mode ? "selected" : ""}">${m === "Read & reflect" ? "▤" : "♩"} &nbsp; ${m}</button>`).join("")}</div><button class="icon-button" id="sound" aria-label="${state.sound ? "Disable" : "Enable"} mistake sound" title="Mistake sound">${state.sound ? "♫" : "♩"} ${state.sound ? "On" : "Off"}</button></div><div class="surah-heading"><span class="surah-tag">SURAH ${state.surah} · ${state.verses.length} AYAHS</span><h2>${escape(s.englishName)}</h2><p lang="ar">${escape(s.name)}</p><span class="ornament">──── ✧ ────</span></div><div class="ayah-area ${state.hidden ? "concealed" : ""}" lang="ar" dir="rtl">${state.hidden ? '<button id="reveal" class="reveal">Tap to reveal the ayah</button>' : renderWords()} ${state.hidden ? "" : `<span class="ayah-number">${(state.verse + 1).toLocaleString("ar")}</span>`}</div><div class="verse-meta">AYAH ${state.verse + 1} OF ${state.verses.length}<span>•</span>${state.saved[`${state.surah}:${state.verse}`] ? "MEMORIZED" : "ONE VERSE, ONE STEP CLOSER"}</div><div class="recitation-status ${state.statuses.includes("mistake") ? "has-error" : ""}" role="status"><span>${state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${escape(state.feedback)}</div>${state.transcript ? `<div class="transcript"><span>YOUR BROWSER HEARD</span><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Recognition can be inaccurate. Compare before correcting your recitation.</small></div>` : ""}<div class="recall-tools">${state.mode === "Recall & recite" ? '<button id="hint">✧ Reveal next word</button>' : ""}<button id="retry">↺ Start ayah again</button><button id="finish" ${!state.transcript ? "disabled" : ""}>Finish & review</button></div><div class="primary-actions"><button class="listen-button" id="listen">${state.listening ? "■ Stop reciting" : "♩ Start reciting"}</button><button class="secondary-button" id="play">${state.playing ? "■ Stop audio" : "▷ Listen to ayah"}</button></div><div class="verse-controls"><button id="prev" ${state.verse === 0 ? "disabled" : ""}>← Previous</button><button id="hide">${state.mode === "Recall & recite" ? (state.revealAll ? "◉ Conceal" : "◉ Reveal all") : state.hidden ? "◉ Reveal" : "◉ Hide"} ${state.mode === "Recall & recite" ? "" : "ayah"}</button><button id="next" ${state.verse === state.verses.length - 1 ? "disabled" : ""}>Next ayah →</button></div></article>
-<aside class="right-panel"><div class="session-card"><div class="panel-label">YOUR SESSION <span>↗</span></div><label for="surah-select">Practicing today</label><select id="surah-select">${surahs.map((s) => `<option value="${s.number}" ${state.surah === s.number ? "selected" : ""}>${s.number}. ${escape(s.englishName)}</option>`).join("")}</select><label class="repeat-label" for="repeat-select">Repeat audio</label><select id="repeat-select">${[1, 3, 5, 10].map((n) => `<option value="${n}" ${state.repeats === n ? "selected" : ""}>${n === 1 ? "Once" : n + " times"}</option>`).join("")}</select><div class="session-progress"><span>Surah progress</span><strong>${Math.round((state.verses.filter((_, i) => state.saved[`${state.surah}:${i}`]).length / state.verses.length) * 100)}%</strong></div><div class="progress-track"><div style="width:${(state.verses.filter((_, i) => state.saved[`${state.surah}:${i}`]).length / state.verses.length) * 100}%"></div></div><button class="mark-button" id="mark">${state.saved[`${state.surah}:${state.verse}`] ? "✓ Memorized · undo" : "✓ Mark ayah as memorized"}</button><p class="session-note">A small step today.<br>A lasting connection tomorrow.</p></div><div class="tip-card"><span class="tip-icon">✧</span><h3>Let your heart listen.</h3><p>Read the ayah slowly. Listen, repeat, then try reciting from memory.</p><div class="tip-divider"></div><strong>A GENTLE REMINDER</strong><p class="technical-note">Recitation uses experimental browser speech recognition. Hidden words appear as you recite in Recall mode. Red words and alerts flag possible text mismatches, not tajweed errors. Check with a qualified teacher.</p></div><div class="privacy-note">♧ <span>Progress stays on this device.<br>Speech may be processed by your browser’s provider.</span></div></aside></div>`;
-}
 function library() {
-  return `<div class="section-heading"><h2>Find your next surah</h2><span>114 chapters · one journey</span></div><div class="library-grid">${surahs.map((s) => `<button class="library-card" data-surah="${s.number}"><span class="chapter-number">${s.number}</span><h2>${escape(s.englishName)}</h2><p lang="ar">${escape(s.name)}</p><small>${s.numberOfAyahs} AYAHS &nbsp; →</small></button>`).join("")}</div><p class="library-note">Al-Faatiha is available offline. Other chapters load from AlQuran Cloud when connected.</p>`;
+  return `<div class="section-heading"><h2>Find your next surah</h2><span>114 chapters · one journey</span></div><div class="library-grid">${surahs.map((s) => `<button class="library-card" data-surah="${s.number}"><span class="chapter-number">${s.number}</span><h2>${escape(s.englishName)}</h2><p lang="ar">${escape(s.name)}</p><small>${s.numberOfAyahs} AYAHS &nbsp; →</small></button>`).join("")}</div><p class="library-note">All 114 surahs are bundled. Quran text: Tanzil Project · Uthmani, Hafs numbering.</p>`;
 }
 function stop() {
   const previous = recognition;
@@ -155,9 +147,13 @@ function resetAttempt() {
   state.extraWords = 0;
   state.revealAll = false;
   state.attemptId = null;
+  state.alertActive = false;
+}
+function activeText() {
+  return practiceText(state.surah, state.verse, state.verses[state.verse]);
 }
 function renderWords() {
-  return state.verses[state.verse]
+  return activeText()
     .split(/\s+/)
     .map((word, i) => {
       const status = state.statuses[i] || "pending";
@@ -246,52 +242,25 @@ function scrollToSelected() {
 }
 async function loadSurah(n, verse = 0, destination = "Reader") {
   stop();
+  requestId++;
   state.loading = false;
-  const ticket = ++requestId;
-  if (n === 1) {
-    state.surah = 1;
-    state.verses = fatiha;
-    state.ayahNumbers = [1, 2, 3, 4, 5, 6, 7];
-    state.verse = Math.max(0, Math.min(state.verses.length - 1, verse));
-    resetAttempt();
-    state.hidden = false;
-    state.feedback = "Take a breath. Begin when you’re ready.";
-    state.tab = destination;
-    render();
-    scrollToSelected();
-    return;
-  }
-  state.loading = true;
-  state.tab = destination;
-  state.feedback = "Loading your surah…";
-  render();
   try {
-    const r = await fetch(
-      `https://api.alquran.cloud/v1/surah/${n}/quran-uthmani`,
-    );
-    if (!r.ok) throw Error();
-    const d = await r.json();
-    if (!Array.isArray(d.data?.ayahs) || !d.data.ayahs.length) throw Error();
-    if (ticket !== requestId) return;
-    state.loading = false;
-    stop();
+    const loaded = chapter(n);
     state.surah = n;
-    state.verses = d.data.ayahs.map((a) => a.text);
-    state.ayahNumbers = d.data.ayahs.map((a) => a.number);
-    state.verse = Math.max(0, Math.min(state.verses.length - 1, verse));
+    state.verses = loaded.verses;
+    state.ayahNumbers = loaded.ayahNumbers;
+    state.verse = Math.max(0, Math.min(loaded.verses.length - 1, verse));
     resetAttempt();
     state.hidden = false;
-    state.feedback = "Your surah is ready. Begin at your own pace.";
     state.tab = destination;
-    render();
-    scrollToSelected();
-  } catch {
-    if (ticket !== requestId) return;
-    state.loading = false;
     state.feedback =
-      "Could not load this surah. Check your connection; Al-Faatiha works offline.";
-    render();
+      "Ready to recite. Quran text: Tanzil Project, Uthmani script.";
+  } catch {
+    state.feedback =
+      "This surah could not be opened. Please select another surah.";
   }
+  render();
+  scrollToSelected();
 }
 function prepareAlertSound() {
   if (!state.sound) return;
@@ -353,17 +322,22 @@ function startReciting() {
         finalTranscript += e.results[i][0].transcript + " ";
     }
     state.transcript = transcript.trim();
-    const result = compareRecitation(state.verses[state.verse], transcript);
+    const result = compareRecitation(
+      activeText(),
+      ayahTranscript(state.surah, state.verse, transcript, normalize),
+    );
     state.statuses = result.statuses;
     state.extraWords = result.extraWords;
     state.readerResults[`${state.surah}:${state.verse}`] = result.statuses;
     if (finalTranscript && finalTranscript !== lastFinal) {
       const confirmed = compareRecitation(
-        state.verses[state.verse],
-        finalTranscript,
+        activeText(),
+        ayahTranscript(state.surah, state.verse, finalTranscript, normalize),
       );
-      if (confirmed.extraWords || confirmed.statuses.includes("mistake"))
-        tone();
+      state.alertActive = Boolean(
+        confirmed.extraWords || confirmed.statuses.includes("mistake"),
+      );
+      if (state.alertActive) tone();
       saveAttempt(finalTranscript, confirmed);
       lastFinal = finalTranscript;
     }
@@ -413,6 +387,11 @@ function bind() {
         requestId++;
         state.loading = false;
         state.tab = b.dataset.tab;
+        if (state.tab === "Practice" || state.tab === "Reader") {
+          state.mode =
+            state.tab === "Practice" ? "Recall & recite" : "Read & reflect";
+          resetAttempt();
+        }
         state.pendingDelete = false;
         render();
       }),
@@ -464,7 +443,7 @@ function bind() {
   });
   on("hint", () => {
     state.hidden = false;
-    const words = state.verses[state.verse].split(/\s+/);
+    const words = activeText().split(/\s+/);
     let i = state.hints;
     while (
       i < words.length &&
@@ -529,20 +508,25 @@ function saveAttempt(transcript, result) {
       surah: state.surah,
       verse: state.verse,
       surahName: current().englishName,
-      expected: state.verses[state.verse],
-      recited: transcript.trim(),
+      expected: activeText(),
+      recited: ayahTranscript(
+        state.surah,
+        state.verse,
+        transcript,
+        normalize,
+      ).trim(),
       details: result.details,
     });
   state.mistakes = state.mistakes.slice(0, 200);
   writeLocal("hifdh-mistakes", state.mistakes);
 }
 function recitationFeedback() {
-  return `<div class="recitation-status ${state.statuses.includes("mistake") || state.extraWords ? "has-error" : ""}" role="status"><span>${state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What your browser heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
+  return `<div class="recitation-status ${state.statuses.includes("mistake") || state.extraWords ? "has-error" : ""} ${state.alertActive ? "mistake-alert-active" : ""}" role="status"><span>${state.alertActive ? "⚠" : state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${state.alertActive ? '<strong class="alert-label">CHECK RECITATION</strong>' : ""}${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What your browser heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
 }
 function readerWords(verse, index) {
   if (index === state.verse) return renderWords();
   const statuses = state.readerResults[`${state.surah}:${index}`] || [];
-  return verse
+  return practiceText(state.surah, index, verse)
     .split(/\s+/)
     .map((word, i) => {
       const masked =
@@ -554,45 +538,19 @@ function readerWords(verse, index) {
 }
 async function searchVerses(query) {
   stop();
-  const normalized = normalize(query),
-    ticket = ++searchRequest;
   state.searchQuery = query;
-  state.searchResults = [];
   state.tab = "Search";
-  if (normalized.length < 2) {
+  if (normalize(query).length < 2) {
+    state.searchResults = [];
     state.searchMessage = "Enter at least two Arabic letters.";
     render();
     return;
   }
-  state.searchMessage = "Searching Quran text…";
-  render();
-  try {
-    const r = await fetch(
-      `https://api.alquran.cloud/v1/search/${encodeURIComponent(normalized)}/all/ar`,
-    );
-    if (r.status === 404) {
-      if (ticket !== searchRequest) return;
-      state.searchMessage = "No matching phrases found. Try fewer words.";
-      render();
-      return;
-    }
-    if (!r.ok) throw Error();
-    const data = await r.json();
-    if (ticket !== searchRequest) return;
-    if (!Array.isArray(data.data?.matches)) throw Error();
-    state.searchResults = data.data.matches
-      .filter(
-        (v) => v.surah?.number && v.numberInSurah && typeof v.text === "string",
-      )
-      .slice(0, 100);
-    state.searchMessage = state.searchResults.length
-      ? `${data.data.count || state.searchResults.length} matches found${data.data.matches.length > 100 ? " · showing first 100" : ""}.`
-      : "No matching phrases found. Try fewer words.";
-  } catch {
-    if (ticket !== searchRequest) return;
-    state.searchMessage =
-      "Search is unavailable. Check your connection and try again.";
-  }
+  const matches = searchQuran(query, normalize);
+  state.searchResults = matches.slice(0, 100);
+  state.searchMessage = matches.length
+    ? `${matches.length} matching verses${matches.length > 100 ? " · showing first 100" : ""}.`
+    : "No matching phrases found. Try fewer words.";
   render();
 }
 function bindScreens() {
@@ -605,6 +563,18 @@ function bindScreens() {
     .forEach(
       (b) => (b.onclick = () => changeVerse(+b.dataset.verse - state.verse)),
     );
+  on("focus", () => {
+    state.focusMode = !state.focusMode;
+    render();
+  });
+  on("test-alert", () => {
+    prepareAlertSound();
+    tone();
+    state.feedback =
+      "Mistake alert preview. This is a test, not a detected mistake.";
+    state.alertActive = true;
+    render();
+  });
   on("reader-settings", () => {
     state.settingsOpen = !state.settingsOpen;
     render();
@@ -640,13 +610,18 @@ function bindScreens() {
     if (!state.transcript) return;
     stop();
     const result = compareRecitation(
-      state.verses[state.verse],
-      state.transcript,
+      activeText(),
+      ayahTranscript(state.surah, state.verse, state.transcript, normalize),
       { finished: true },
     );
     state.statuses = result.statuses;
     state.extraWords = result.extraWords;
     state.readerResults[`${state.surah}:${state.verse}`] = result.statuses;
+    state.alertActive = result.details.length > 0;
+    if (state.alertActive) {
+      prepareAlertSound();
+      tone();
+    }
     saveAttempt(state.transcript, result);
     state.feedback = result.details.length
       ? "Attempt finished. Possible mismatches are saved in Review. Unrecited ending words count as missed when you finish."
@@ -747,12 +722,3 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", stop);
 
 render();
-// Populate the complete library while keeping the starter chapters available offline.
-fetch("https://api.alquran.cloud/v1/surah")
-  .then((r) => (r.ok ? r.json() : Promise.reject()))
-  .then((d) => {
-    if (!Array.isArray(d.data)) return;
-    surahs.splice(0, surahs.length, ...d.data);
-    if (state.tab === "Library" || state.tab === "Reader") render();
-  })
-  .catch(() => {});
