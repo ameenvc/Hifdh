@@ -4592,3 +4592,153 @@ body[data-theme] .reader-controls {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Reference-inspired reading palette: white paper, gray chrome and teal actions. */
+body[data-theme="white"] {
+  --canvas: #f4f4f6;
+  --raised: #ededf0;
+  --line: #d4d4db;
+  --text: #161916;
+  --muted: #60666a;
+  --accent: #147f79;
+  --button: #147f79;
+  --on-button: #fff;
+  --soft: #e2eeeb;
+  --selected: #daf0d2;
+  --reader-bar: #e9e8ee;
+  --verse-green: #417a45;
+  --ornament-green: #56835b;
+  --ornament-gold: #a78032;
+}
+body[data-theme="black"] {
+  --accent: #83d5c9;
+  --button: #83d5c9;
+  --on-button: #092522;
+  --soft: #19322e;
+  --selected: #203a29;
+  --reader-bar: #191d20;
+  --verse-green: #a3cf9a;
+  --ornament-green: #9cc7a1;
+  --ornament-gold: #d2b56f;
+}
+body[data-theme] .reader-toolbar,
+body[data-theme] .reader-controls {
+  background: var(--reader-bar);
+}
+body[data-theme] .reader-mode,
+body[data-theme] .page-navigation {
+  background: var(--surface);
+}
+body[data-theme] .reader-icon,
+body[data-theme] .page-navigation > button {
+  color: var(--muted);
+}
+body[data-theme] .reader-icon.bookmarked,
+body[data-theme] .reader-icon:hover,
+body[data-theme] .page-navigation > button:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--soft);
+}
+body[data-theme] .segmented button.selected,
+body[data-theme] .reader-controls .controls-toggle,
+body[data-theme] .controls-grid > .listen-button {
+  background: var(--button);
+  color: var(--on-button);
+  border-color: var(--button);
+}
+body[data-theme] .reader-controls .controls-toggle {
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent);
+}
+body[data-theme] .sound-button.enabled {
+  color: var(--accent);
+  background: var(--soft);
+  border-color: var(--accent);
+}
+body[data-theme] .page-navigation > button {
+  background: transparent;
+  border-color: transparent;
+  font-size: 12px;
+}
+body[data-theme] .page-counter {
+  font-size: 12px;
+}
+body[data-theme] .paged-mushaf .page-surah {
+  max-width: 920px;
+}
+body[data-theme] .paged-mushaf .mushaf-text {
+  font-family: Amiri, "Times New Roman", serif;
+  font-weight: 400;
+  line-height: 2.05;
+  word-spacing: 1.5px;
+  text-align: justify;
+  text-align-last: center;
+}
+body[data-theme] .paged-mushaf .chapter-ornament {
+  max-width: 680px;
+  width: calc(100% - 24px);
+  border: 3px double var(--ornament-green);
+  outline: 1px solid var(--ornament-green);
+  outline-offset: 3px;
+  border-radius: 22px 4px;
+  background: var(--surface);
+  gap: clamp(12px, 4vw, 36px);
+  margin: 15px auto 20px;
+  padding: 1px 12px;
+}
+body[data-theme] .paged-mushaf .chapter-ornament h2 {
+  font-family: Amiri, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: calc(var(--quran-size) * .85);
+}
+body[data-theme] .paged-mushaf .chapter-ornament > span {
+  color: var(--ornament-green);
+  text-shadow: 2px 1px var(--ornament-gold);
+  font-size: calc(var(--quran-size) * .9);
+}
+body[data-theme] .paged-mushaf .chapter-ornament > span:last-child {
+  transform: scaleX(-1);
+}
+body[data-theme] .paged-mushaf .basmala {
+  font-family: Amiri, "Times New Roman", serif;
+  font-weight: 400;
+  line-height: 1.9;
+  margin-bottom: 14px;
+}
+body[data-theme] .paged-mushaf .current-verse {
+  background: var(--selected);
+  border-radius: 0;
+  box-shadow: none;
+}
+body[data-theme] .paged-mushaf .verse-marker {
+  position: relative;
+  background: transparent;
+  color: var(--verse-green);
+  border: 1px solid var(--verse-green);
+  outline: 1px solid var(--verse-green);
+  outline-offset: 2px;
+  border-radius: 35%;
+  font-family: Amiri, "Times New Roman", serif;
+  font-weight: 400;
+  margin-inline: 7px;
+}
+body[data-theme] .paged-mushaf .verse-marker[aria-current="true"] {
+  background: var(--selected);
+  color: var(--verse-green);
+  border-color: var(--verse-green);
+  outline-color: var(--verse-green);
+}
+@media (max-width: 520px) {
+  body[data-theme] .page-navigation > button,
+  body[data-theme] .page-counter { font-size: 10px; }
+  body[data-theme] .paged-mushaf .chapter-ornament {
+    margin-top: 10px;
+    margin-bottom: 16px;
+  }
+}
+/* Keep the surah title legible even when a dense page needs smaller body text. */
+body[data-theme] .paged-mushaf .chapter-ornament h2 {
+  font-size: clamp(20px, var(--quran-size), 28px);
+}
+body[data-theme] .paged-mushaf .chapter-ornament > span {
+  font-size: clamp(20px, var(--quran-size), 28px);
+}

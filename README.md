@@ -17,6 +17,8 @@ For responsive button alignment checks, run `npm run test:layout`. This builds a
 
 ## Features
 
+The reader uses white paper, soft gray toolbars, teal controls, green verse markers and a green/gold surah frame inspired by the supplied reference. Bundled Amiri provides traditional Arabic typography. New installations request 36px Quran text; saved text-size preferences remain in effect, and page fitting adapts text to the available screen. Black view retains matching teal/green accents.
+
 - **Start anywhere:** open the bottom controls and choose Start anywhere, then recite a short phrase and pause briefly. A unique recognized phrase opens its surah/ayah/page, even from the middle of an ayah. Repeated phrases show choices or ask for more words. No confident match means no automatic jump.
 - **Ayah challenge:** choose Ayah challenge in the controls or navigation, select a surah and cue ayah, then Show prompt. The default shows one complete ayah and hides the continuation. Random prompts and an optional finish-this-ayah style are available. Recite continuation, or use word hints, reveal and reference audio. The challenge does not grade recitation.
 

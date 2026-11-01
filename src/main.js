@@ -63,7 +63,7 @@ let state = {
   extraWords: 0,
   revealAll: false,
   settingsOpen: false,
-  fontSize: readLocal("hifdh-font-size", 32),
+  fontSize: readLocal("hifdh-font-size", 36),
   bookmark: readLocal("hifdh-bookmark", null),
   mistakes: readLocal("hifdh-mistakes", []),
   activity: readLocal("hifdh-activity", {}),

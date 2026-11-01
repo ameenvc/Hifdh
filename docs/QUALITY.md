@@ -28,6 +28,8 @@ Assessed on 1 November 2026. Scope: the production web build, Quran data integri
 
 ## Responsive button alignment
 
+The reference-inspired palette and typography update was also checked with the same layout suite: white paper, gray bars, teal actions, green markers, a decorative green/gold chapter frame and adaptive Amiri text. A 390×844 production screenshot of Maryam page 305 was visually inspected. The surah title retains a readable minimum size independently of fitted body text.
+
 - Fixed top toolbar alignment by sharing button/select heights and grid positions.
 - Gave Previous and Next equal widths and centered the page counter independently of their labels.
 - Anchored the compact bottom icon and its dropdown to the reader’s right inset at every checked width. Dropdown actions share column widths, row heights and icon alignment.
