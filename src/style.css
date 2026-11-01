@@ -3787,3 +3787,119 @@ body[data-theme] .uncertain-text {
   background: var(--raised);
   color: var(--muted);
 }
+/* One standard Madinah page at a time; font size adapts to the reading area. */
+body[data-theme] .paged-mushaf,
+body[data-theme] .reciting-page .paged-mushaf {
+  overflow: hidden;
+  min-height: 0;
+  padding: 12px clamp(18px, 4vw, 65px) 16px;
+}
+.paged-mushaf .page-surah {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.paged-mushaf .chapter-ornament {
+  margin: 6px auto 12px;
+  padding: 3px 10px;
+}
+.paged-mushaf .chapter-ornament h2 {
+  font-size: calc(var(--quran-size) * 0.95);
+  line-height: 1.5;
+}
+.paged-mushaf .chapter-ornament > span {
+  font-size: calc(var(--quran-size) * 0.75);
+}
+body[data-theme] .paged-mushaf .basmala {
+  font-size: var(--quran-size);
+  line-height: 1.8;
+  margin: 6px auto 12px;
+  padding: 2px;
+}
+.paged-mushaf .mushaf-text,
+body[data-theme] .paged-mushaf .mushaf-text {
+  font-size: var(--quran-size);
+  line-height: 2.15;
+  word-spacing: 1px;
+}
+.paged-mushaf .verse-marker {
+  font-size: calc(var(--quran-size) * 0.48);
+  width: calc(var(--quran-size) * 0.82);
+  height: calc(var(--quran-size) * 0.82);
+  min-width: 0;
+  margin: 0 5px;
+  outline-offset: 1px;
+}
+.paged-mushaf .masked-word {
+  font-size: calc(var(--quran-size) * 0.42);
+  min-width: calc(var(--quran-size) * 0.7);
+  padding: 2px 3px;
+  line-height: 1.5;
+  margin: 0 2px;
+  letter-spacing: 1px;
+}
+.page-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 6px 20px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+.page-navigation button {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  background: var(--raised);
+  color: var(--text);
+  border: 1px solid var(--line);
+  font-size: 10px;
+}
+.page-navigation svg {
+  width: 16px;
+  height: 16px;
+}
+.page-counter {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.page-counter strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.page-surah + .page-surah {
+  margin-top: 12px;
+}
+.paged-mushaf .current-verse {
+  box-shadow: none !important;
+}
+@media (max-width: 520px) {
+  .page-navigation {
+    padding: 5px 12px;
+    gap: 7px;
+  }
+  .page-navigation button {
+    font-size: 9px;
+    padding: 4px 8px;
+    min-height: 32px;
+  }
+  .page-counter {
+    font-size: 9px;
+  }
+  body[data-theme] .paged-mushaf {
+    padding: 10px 20px 12px;
+  }
+  .page-surah + .page-surah {
+    margin-top: 9px;
+  }
+}
+body[data-theme] .paged-mushaf.page-overflow {
+  overflow-y: auto;
+}

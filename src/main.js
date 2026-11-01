@@ -24,6 +24,9 @@ import {
   practiceText,
   searchQuran,
   ayahTranscript,
+  pageForVerse,
+  quranPage,
+  PAGE_COUNT,
 } from "./quran.js";
 const initialChapter = chapter(1);
 let saved = {};
@@ -125,7 +128,9 @@ function render() {
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute("content", state.theme === "white" ? "#ffffff" : "#000000");
-  const scrollTop = document.querySelector(".mushaf")?.scrollTop || 0;
+  const oldPanel = document.querySelector(".mushaf");
+  const oldPage = oldPanel?.dataset.page;
+  const scrollTop = oldPanel?.scrollTop || 0;
   document.querySelector("#app").innerHTML =
     `<aside class="sidebar"><a class="brand" href="#">◈ <span>hifdh<span class="brand-dot">.</span></span></a><div class="workspace-label">YOUR PERSONAL SANCTUARY</div><nav>${[
       ["Reader", "book", "Quran reader"],
@@ -146,7 +151,9 @@ ${reading ? readerScreen(state, surahs, readerWords, recitationFeedback) : state
 <footer><span>◈ &nbsp; Quran text: <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project</a> · Uthmani</span><span>Consistency over perfection.</span></footer></section></main>`;
   bind();
   const mushaf = document.querySelector(".mushaf");
-  if (mushaf) mushaf.scrollTop = scrollTop;
+  if (mushaf)
+    mushaf.scrollTop = oldPage === mushaf.dataset.page ? scrollTop : 0;
+  fitQuranPage();
 }
 function library() {
   return `<div class="section-heading"><h2>Find your next surah</h2><span>114 chapters · one journey</span></div><div class="library-grid">${surahs.map((s) => `<button class="library-card" data-surah="${s.number}"><span class="chapter-number">${s.number}</span><h2>${escape(s.englishName)}</h2><p lang="ar">${escape(s.name)}</p><small>${s.numberOfAyahs} AYAHS &nbsp; →</small></button>`).join("")}</div><p class="library-note">All 114 surahs are bundled. Quran text: Tanzil Project · Uthmani, Hafs numbering.</p>`;
@@ -683,10 +690,10 @@ function saveAttempt(transcript, result) {
 function recitationFeedback() {
   return `<div class="recitation-status ${state.alertActive ? "has-error" : state.uncertaintyActive ? "has-uncertainty" : ""} ${state.alertActive ? "mistake-alert-active" : ""}" role="status"><span>${state.alertActive ? "⚠" : state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${state.alertActive ? '<strong class="alert-label">CHECK RECITATION</strong>' : ""}${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What your browser heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
 }
-function readerWords(verse, index) {
-  if (index === state.verse) return renderWords();
-  const statuses = state.readerResults[`${state.surah}:${index}`] || [];
-  return practiceText(state.surah, index, verse)
+function readerWords(verse, index, number = state.surah) {
+  if (number === state.surah && index === state.verse) return renderWords();
+  const statuses = state.readerResults[`${number}:${index}`] || [];
+  return practiceText(number, index, verse)
     .split(/\s+/)
     .map((word, i) => {
       const masked =
@@ -718,11 +725,22 @@ function bindScreens() {
     const element = document.getElementById(id);
     if (element) element.onclick = fn;
   };
-  document
-    .querySelectorAll("[data-verse]")
-    .forEach(
-      (b) => (b.onclick = () => changeVerse(+b.dataset.verse - state.verse)),
-    );
+  document.querySelectorAll("[data-verse]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const number = +b.dataset.chapter,
+          index = +b.dataset.verse;
+        if (number === state.surah) changeVerse(index - state.verse);
+        else loadSurah(number, index, state.tab);
+      }),
+  );
+  on("page-prev", () => turnPage(-1));
+  on("page-next", () => turnPage(1));
+  on("page-go", () => {
+    const number = +document.getElementById("page-number").value;
+    if (Number.isInteger(number) && number >= 1 && number <= PAGE_COUNT)
+      openPage(number);
+  });
   on("focus", () => {
     state.focusMode = !state.focusMode;
     if (!state.focusMode) state.recitationPage = false;
@@ -839,6 +857,7 @@ function bindScreens() {
         .querySelector(".mushaf")
         .style.setProperty("--quran-size", state.fontSize + "px");
       writeLocal("hifdh-font-size", state.fontSize);
+      fitQuranPage();
     };
   on("jump", () => {
     const n = Number(document.getElementById("jump-ayah").value);
@@ -984,3 +1003,87 @@ document.addEventListener("keydown", (event) => {
     document.getElementById("controls-toggle")?.focus();
   }
 });
+
+function openPage(number) {
+  const page = quranPage(number);
+  loadSurah(
+    page.first.surah,
+    page.first.index,
+    state.tab === "Practice" ? "Practice" : "Reader",
+  );
+}
+function turnPage(direction) {
+  const number = pageForVerse(state.surah, state.verse) + direction;
+  if (number >= 1 && number <= PAGE_COUNT) openPage(number);
+}
+function fitQuranPage() {
+  const panel = document.querySelector(".paged-mushaf");
+  if (!panel || panel.clientHeight < 1) return;
+  const requested = state.fontSize;
+  const fits = (size) => {
+    panel.style.setProperty("--quran-size", size + "px");
+    return panel.scrollHeight <= panel.clientHeight + 1;
+  };
+  let low = 11,
+    high = requested,
+    best = 11;
+  while (high - low > 0.3) {
+    const mid = (low + high) / 2;
+    if (fits(mid)) {
+      best = mid;
+      low = mid;
+    } else high = mid;
+  }
+  panel.style.setProperty(
+    "--quran-size",
+    (fits(requested) ? requested : best) + "px",
+  );
+  panel.classList.toggle(
+    "page-overflow",
+    panel.scrollHeight > panel.clientHeight + 1,
+  );
+  panel.scrollTop = 0;
+}
+window.addEventListener("resize", fitQuranPage);
+if (document.fonts?.ready) document.fonts.ready.then(fitQuranPage);
+document.addEventListener("keydown", (event) => {
+  if (
+    !document.querySelector(".paged-mushaf") ||
+    state.controlsOpen ||
+    event.target?.matches?.("input,select,textarea") ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey
+  )
+    return;
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    turnPage(1);
+  } else if (event.key === "ArrowRight") {
+    event.preventDefault();
+    turnPage(-1);
+  }
+});
+let pageTouch = null;
+document.addEventListener(
+  "touchstart",
+  (event) => {
+    if (event.target.closest(".paged-mushaf") && event.touches.length === 1)
+      pageTouch = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    else pageTouch = null;
+  },
+  { passive: true },
+);
+document.addEventListener(
+  "touchend",
+  (event) => {
+    if (!pageTouch) return;
+    const touch = event.changedTouches[0],
+      dx = touch.clientX - pageTouch.x,
+      dy = touch.clientY - pageTouch.y;
+    pageTouch = null;
+    if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.6)
+      turnPage(dx > 0 ? 1 : -1);
+  },
+  { passive: true },
+);

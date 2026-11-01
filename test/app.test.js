@@ -242,7 +242,7 @@ test("audio repeat stops after the requested count", async () => {
   assert.equal(a.player.calls, 3);
   a.player.onended();
   assert.match(
-    a.w.document.querySelector("[role=status]").textContent,
+    a.w.document.querySelector(".recitation-status").textContent,
     /Listening complete/,
   );
   a.close();
@@ -272,7 +272,9 @@ test("all chapters open offline with Bismillah separated and source numbering un
     0,
   );
   assert.equal(
-    a.w.document.querySelectorAll(".mushaf-text .verse-marker").length,
+    a.w.document.querySelectorAll(
+      '[data-page-surah="112"] .mushaf-text .verse-marker',
+    ).length,
     4,
   );
   assert.match(
@@ -282,7 +284,8 @@ test("all chapters open offline with Bismillah separated and source numbering un
   a.w.document.querySelector('[data-tab="Library"]').click();
   a.w.document.querySelector('[data-surah="9"]').click();
   assert.equal(a.w.document.querySelector(".basmala"), null);
-  assert.equal(a.w.document.querySelectorAll(".verse-marker").length, 129);
+  assert.ok(a.w.document.querySelectorAll(".verse-marker").length < 129);
+  assert.ok(a.w.document.querySelector('[data-chapter="9"][data-verse="0"]'));
   a.close();
 });
 test("sound preview and confirmed mismatches show the prominent red alert state", async () => {
@@ -378,7 +381,7 @@ test("all Fatiha ayahs in standard spelling complete without changing displayed 
     "false",
   );
   assert.match(
-    a.w.document.querySelector("[role=status]").textContent,
+    a.w.document.querySelector(".recitation-status").textContent,
     /Session complete/,
   );
   assert.ok(
@@ -598,5 +601,63 @@ test("Yunus session boundaries remain aligned across punctuation-only recognitio
     );
   }
   assert.equal(a.tones, 0);
+  a.close();
+});
+
+test("page buttons turn standard pages across surahs instead of rendering an entire surah", async () => {
+  const a = app();
+  await tick();
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "1");
+  assert.equal(a.w.document.getElementById("page-prev").disabled, true);
+  a.click("page-next");
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "2");
+  assert.equal(a.w.document.querySelectorAll(".verse-marker").length, 5);
+  a.click("page-next");
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "3");
+  assert.ok(a.w.document.querySelector('[data-chapter="2"][data-verse="5"]'));
+  assert.equal(a.w.document.querySelector(".basmala"), null);
+  a.click("page-prev");
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "2");
+  a.close();
+});
+test("last page shows all its surahs and selecting another surah retains the page", async () => {
+  const a = app();
+  await tick();
+  a.click("reader-settings");
+  a.w.document.getElementById("page-number").value = "604";
+  a.click("page-go");
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "604");
+  assert.deepEqual(
+    [...a.w.document.querySelectorAll("[data-page-surah]")].map(
+      (e) => e.dataset.pageSurah,
+    ),
+    ["112", "113", "114"],
+  );
+  assert.equal(a.w.document.getElementById("page-next").disabled, true);
+  a.w.document.querySelector('[data-chapter="114"][data-verse="0"]').click();
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "604");
+  assert.match(
+    a.w.document.querySelector(".reader-chapter").textContent,
+    /An-Naas/,
+  );
+  a.close();
+});
+test("recitation automatically displays the next standard page without restarting recognition", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.click("page-next");
+  a.w.document.querySelector('[data-chapter="2"][data-verse="4"]').click();
+  a.click("listen");
+  a.say(standardText["2"][4].text);
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "3");
+  assert.equal(
+    a.w.document.getElementById("listen").getAttribute("aria-pressed"),
+    "true",
+  );
+  assert.ok(
+    a.w.document.querySelector(
+      '[data-chapter="2"][data-verse="5"][aria-current="true"]',
+    ),
+  );
   a.close();
 });

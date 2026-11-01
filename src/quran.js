@@ -75,3 +75,61 @@ export function ayahTranscript(surah, index, spoken, normalize) {
     return words.slice(4).join(" ");
   return spoken;
 }
+
+// The pinned Tanzil metadata carries the standard 604 Madinah page starts.
+const pageRows = surahs.flatMap((s) =>
+  text[String(s.number)].map((row, index) => ({
+    surah: s.number,
+    index,
+    text: row.text,
+  })),
+);
+const chapterOffsets = SURAH_COUNTS.map((_, index) =>
+  SURAH_COUNTS.slice(0, index).reduce((sum, n) => sum + n, 0),
+);
+const pageStarts = metadata.indexes.pages.map(
+  (p) => chapterOffsets[p.sura - 1] + p.aya - 1,
+);
+export const PAGE_COUNT = pageStarts.length;
+export function pageForVerse(surah, index) {
+  if (
+    !Number.isInteger(surah) ||
+    surah < 1 ||
+    surah > 114 ||
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= SURAH_COUNTS[surah - 1]
+  )
+    throw new RangeError("Unknown Quran reference");
+  const offset = chapterOffsets[surah - 1] + index;
+  let low = 0,
+    high = pageStarts.length - 1;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    if (pageStarts[mid] <= offset) low = mid;
+    else high = mid - 1;
+  }
+  return low + 1;
+}
+export function quranPage(number) {
+  if (!Number.isInteger(number) || number < 1 || number > PAGE_COUNT)
+    throw new RangeError("Unknown Quran page");
+  const rows = pageRows.slice(
+      pageStarts[number - 1],
+      pageStarts[number] ?? pageRows.length,
+    ),
+    segments = [];
+  for (const row of rows) {
+    let segment = segments.at(-1);
+    if (!segment || segment.surah !== row.surah) {
+      segment = {
+        surah: row.surah,
+        metadata: surahs[row.surah - 1],
+        verses: [],
+      };
+      segments.push(segment);
+    }
+    segment.verses.push(row);
+  }
+  return { number, rows, segments, first: rows[0], last: rows.at(-1) };
+}
