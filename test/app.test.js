@@ -729,3 +729,129 @@ test("ordinary taps do not redraw the reader or remove focused controls", async 
   assert.equal(a.w.document.activeElement, input);
   a.close();
 });
+
+test("Start anywhere locates a mid-ayah phrase on its page without marking the preceding words missed", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.click("locate-start");
+  a.say("وبشر الذين آمنوا أن لهم قدم صدق");
+  assert.equal(a.w.document.getElementById("surah-picker").value, "10");
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "208");
+  assert.ok(
+    a.w.document.querySelector(
+      '[data-chapter="10"][data-verse="1"][aria-current="true"]',
+    ),
+  );
+  assert.equal(
+    a.w.document.querySelector(".word.mistake,.word.uncertain"),
+    null,
+  );
+  assert.equal(
+    a.w.document.getElementById("listen").getAttribute("aria-pressed"),
+    "true",
+  );
+  assert.equal(a.tones, 0);
+  a.close();
+});
+test("ambiguous recitation asks for context and permits choosing a candidate", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.click("locate-start");
+  a.say("الحمد لله رب العالمين");
+  assert.equal(a.w.document.getElementById("surah-picker").value, "1");
+  assert.ok(a.w.document.querySelectorAll("[data-location]").length > 1);
+  a.w.document.querySelector("[data-location]").click();
+  assert.equal(a.w.document.querySelector("[data-location]"), null);
+  assert.match(
+    a.w.document.querySelector(".locator-panel").textContent,
+    /Recognized text located/,
+  );
+  assert.equal(a.tones, 0);
+  a.close();
+});
+test("full-ayah exercise shows a cue and hides the following ayah until recited", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.click("open-challenge");
+  a.w.document.getElementById("quiz-ayah").value = "2";
+  a.w.document
+    .getElementById("quiz-ayah")
+    .dispatchEvent(new a.w.Event("input"));
+  a.click("challenge-begin");
+  await tick();
+  assert.ok(a.w.document.querySelector(".challenge-cue"));
+  assert.match(
+    a.w.document.querySelector(".challenge-cue").textContent,
+    /ٱلْحَمْدُ/,
+  );
+  assert.equal(
+    a.w.document.querySelectorAll(".challenge-answer .masked-word").length,
+    2,
+  );
+  a.click("challenge-listen");
+  a.say("الرحمن الرحيم");
+  assert.equal(
+    a.w.document.getElementById("listen").getAttribute("aria-pressed"),
+    "true",
+  );
+  assert.match(
+    a.w.document.querySelector(".challenge-target").textContent,
+    /1:4/,
+  );
+  assert.equal(a.tones, 0);
+  a.close();
+});
+test("finish-ayah exercise compares only the hidden remainder and can return to the full Quran page", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.click("open-challenge");
+  const style = a.w.document.getElementById("quiz-style");
+  style.value = "finish";
+  style.dispatchEvent(new a.w.Event("change"));
+  const ayah = a.w.document.getElementById("quiz-ayah");
+  ayah.value = "7";
+  ayah.dispatchEvent(new a.w.Event("input"));
+  a.click("challenge-begin");
+  await tick();
+  assert.equal(a.w.document.querySelector(".challenge-cue"), null);
+  assert.equal(
+    a.w.document.querySelectorAll(".challenge-answer .word:not(.masked-word)")
+      .length,
+    4,
+  );
+  a.click("challenge-listen");
+  a.say("غير المغضوب عليهم ولا الضالين");
+  assert.equal(
+    a.w.document.querySelector(".word.mistake,.word.uncertain"),
+    null,
+  );
+  assert.equal(a.tones, 0);
+  assert.equal(
+    a.w.document.getElementById("listen").getAttribute("aria-pressed"),
+    "false",
+  );
+  a.click("challenge-end");
+  assert.equal(a.w.document.querySelector(".challenge-page"), null);
+  assert.ok(a.w.document.querySelector(".page-navigation:not([hidden])"));
+  a.close();
+});
+
+test("Start anywhere finds a short unique ayah after Bismillah and continues on its page", async () => {
+  const a = app(undefined, {});
+  await tick();
+  a.click("locate-start");
+  a.say("بسم الله الرحمن الرحيم قل هو الله احد");
+  assert.equal(a.w.document.getElementById("surah-picker").value, "112");
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "604");
+  assert.ok(
+    a.w.document.querySelector(
+      '[data-chapter="112"][data-verse="1"][aria-current="true"]',
+    ),
+  );
+  assert.equal(
+    a.w.document.querySelector(".word.uncertain,.word.mistake"),
+    null,
+  );
+  assert.equal(a.tones, 0);
+  a.close();
+});

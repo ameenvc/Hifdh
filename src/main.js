@@ -17,6 +17,7 @@ import {
   mistakesScreen,
   searchScreen,
   progressScreen,
+  challengeScreen,
 } from "./screens.js";
 import {
   chapter,
@@ -28,6 +29,8 @@ import {
   quranPage,
   PAGE_COUNT,
 } from "./quran.js";
+import { locatePassage } from "./locator.js";
+import { makeChallenge } from "./challenge.js";
 const initialChapter = chapter(1);
 let saved = {};
 try {
@@ -83,6 +86,16 @@ let state = {
       : "safe",
   uncertaintyActive: false,
   alertActive: false,
+  finding: false,
+  locationState: "idle",
+  locationMessage: "",
+  locationCandidates: [],
+  recitationOffset: 0,
+  challenge: null,
+  quizSurah: 1,
+  quizAyah: 1,
+  quizStyle: "next",
+  quizMessage: "",
 };
 let recognition,
   audio,
@@ -90,7 +103,8 @@ let recognition,
   searchRequest = 0,
   activeSince = null,
   alertContext,
-  alertAudio;
+  alertAudio,
+  chooseLocated;
 const icons = { leaf: "◈", home: "⌂", book: "▤", mic: "♩", chart: "◴" };
 const escape = (s) =>
   String(s).replace(
@@ -135,6 +149,7 @@ function render() {
     `<aside class="sidebar"><a class="brand" href="#">◈ <span>hifdh<span class="brand-dot">.</span></span></a><div class="workspace-label">YOUR PERSONAL SANCTUARY</div><nav>${[
       ["Reader", "book", "Quran reader"],
       ["Practice", "mic", "Memorize"],
+      ["Challenge", "leaf", "Challenge"],
       ["Mistakes", "leaf", "Review"],
       ["Search", "home", "Similar verses"],
       ["Progress", "chart", "Progress"],
@@ -147,7 +162,7 @@ function render() {
         "",
       )}</nav><div class="sidebar-bottom"><div class="small-flower">✧</div><p>Little by little,<br>the heart remembers.</p><span>YOUR JOURNEY, YOUR PACE</span></div><div class="profile"><div class="avatar">Y</div><div>Your journey<small>Growing every day</small></div><span>↗</span></div></aside>
 <main class="${reading ? "reader-view" : ""}"><header><div class="breadcrumb">My workspace <span>/</span> ${state.tab === "Practice" ? "Memorization" : escape(state.tab)}</div><div class="header-right"><span class="today">☀ &nbsp; A good day to begin</span><div class="avatar mini">Y</div></div></header><section class="content ${reading ? "reader-content" : ""}"><h1 class="sr-only">${reading ? escape(current().englishName) + " Quran reader" : escape(state.tab)}</h1>${reading ? '<div class="reader-intro"><span class="kicker">YOUR QURAN, CLOSE TO HEART</span><h1>Read. Remember. Return.</h1><button class="text-button" id="resume-bookmark">' + (state.bookmark ? "Resume bookmark →" : "Choose a surah →") + "</button></div>" : ""}<div class="eyebrow">السَّلَامُ عَلَيْكُمْ <span>PEACE BE UPON YOU</span></div><div class="page-title"><div><h2 class="workspace-title">A little closer, every ayah.</h2><p>Make room for the Quran. Let each verse settle in your heart.</p></div><span class="date-pill">✧ &nbsp; Your daily connection</span></div>
-${reading ? readerScreen(state, surahs, readerWords, recitationFeedback) : state.tab === "Library" ? library() : state.tab === "Mistakes" ? mistakesScreen(state) : state.tab === "Search" ? searchScreen(state) : progressScreen(state, surahs)}
+${reading ? readerScreen(state, surahs, readerWords, recitationFeedback) : state.tab === "Challenge" ? challengeScreen(state, surahs) : state.tab === "Library" ? library() : state.tab === "Mistakes" ? mistakesScreen(state) : state.tab === "Search" ? searchScreen(state) : progressScreen(state, surahs)}
 <footer><span>◈ &nbsp; Quran text: <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project</a> · Uthmani</span><span>Consistency over perfection.</span></footer></section></main>`;
   bind();
   const mushaf = document.querySelector(".mushaf");
@@ -161,6 +176,8 @@ function library() {
 function stop() {
   const previous = recognition;
   recognition = null;
+  state.finding = false;
+  chooseLocated = null;
   previous?.abort();
   state.listening = false;
   if (audio) {
@@ -174,13 +191,40 @@ function stop() {
 }
 function resetAttempt() {
   state.statuses = [];
-  state.hints = 0;
+  state.recitationOffset =
+    state.challenge?.style === "finish" &&
+    state.challenge.surah === state.surah &&
+    state.challenge.targetVerse === state.verse
+      ? state.challenge.cueWords
+      : 0;
+  state.hints = state.recitationOffset;
   state.transcript = "";
   state.extraWords = 0;
   state.revealAll = false;
   state.attemptId = null;
   state.alertActive = false;
   state.uncertaintyActive = false;
+}
+function withWordOffset(result, offset) {
+  return {
+    ...result,
+    statuses: [...Array(offset).fill("pending"), ...result.statuses],
+    details: result.details.map((d) => ({
+      ...d,
+      position: d.position + offset,
+    })),
+  };
+}
+function compareCurrent(spoken, options) {
+  const offset = state.recitationOffset;
+  return withWordOffset(
+    compareRecitation(
+      activeText().split(/\s+/).slice(offset).join(" "),
+      spoken,
+      options,
+    ),
+    offset,
+  );
 }
 function presentationStatuses(statuses) {
   return statuses.map((status) =>
@@ -262,6 +306,8 @@ function playAyah() {
 function changeVerse(offset) {
   if (state.loading) return;
   stop();
+  state.challenge = null;
+  state.locationState = "idle";
   state.verse = Math.max(
     0,
     Math.min(state.verses.length - 1, state.verse + offset),
@@ -283,6 +329,8 @@ function scrollToSelected() {
 }
 async function loadSurah(n, verse = 0, destination = "Reader") {
   stop();
+  state.challenge = null;
+  state.locationState = "idle";
   requestId++;
   state.loading = false;
   try {
@@ -381,10 +429,10 @@ function tone() {
     Promise.resolve(alertContext.resume()).then(play).catch(fallback);
   else play();
 }
-function startReciting() {
+function startReciting(findAnywhere = false) {
   if (state.loading) return;
   prepareAlertSound();
-  if (state.listening) {
+  if (state.listening && !findAnywhere) {
     stop();
     state.feedback = "Session paused. Take your time.";
     render();
@@ -399,6 +447,7 @@ function startReciting() {
     return;
   }
   stop();
+  if (findAnywhere) state.challenge = null;
   resetAttempt();
   state.hidden = false;
   const session = new Speech();
@@ -408,14 +457,56 @@ function startReciting() {
   session.interimResults = true;
   let lastFinal = "",
     consumedWords = 0;
-  const startVerse = state.verse;
-  const passage = state.verses.map((verse, index) =>
+  const transcriptSurah = state.surah,
+    transcriptStartVerse = state.verse;
+  let anchorVerse = state.verse,
+    anchorOffset = state.recitationOffset;
+  let passage = state.verses.map((verse, index) =>
     practiceText(state.surah, index, verse),
   );
+  if (anchorOffset)
+    passage[anchorVerse] = passage[anchorVerse]
+      .split(/\s+/)
+      .slice(anchorOffset)
+      .join(" ");
   const words = (text) =>
-    spokenTokens(ayahTranscript(state.surah, startVerse, text, normalize));
+    spokenTokens(
+      ayahTranscript(transcriptSurah, transcriptStartVerse, text, normalize),
+    );
+  let lastEvent;
+  const acceptLocation = (match) => {
+    if (recognition !== session) return;
+    const loaded = chapter(match.surah);
+    state.surah = match.surah;
+    state.verses = loaded.verses;
+    state.ayahNumbers = loaded.ayahNumbers;
+    state.verse = match.verse;
+    resetAttempt();
+    state.recitationOffset = match.wordIndex;
+    state.hints = match.wordIndex;
+    anchorVerse = match.verse;
+    anchorOffset = match.wordIndex;
+    passage = loaded.verses.map((verse, index) =>
+      practiceText(match.surah, index, verse),
+    );
+    if (anchorOffset)
+      passage[anchorVerse] = passage[anchorVerse]
+        .split(/\s+/)
+        .slice(anchorOffset)
+        .join(" ");
+    consumedWords = match.ignoredWords;
+    lastFinal = "";
+    state.finding = false;
+    state.locationCandidates = [];
+    state.locationState = "matched";
+    state.locationMessage = `Recognized text located ${current().englishName} ${match.surah}:${match.verse + 1} · page ${match.page}.`;
+    if (lastEvent) session.onresult(lastEvent);
+    else render();
+  };
+  chooseLocated = acceptLocation;
   session.onresult = (e) => {
     if (recognition !== session) return;
+    lastEvent = e;
     let transcript = "",
       finalTranscript = "";
     for (let i = 0; i < e.results.length; i++) {
@@ -425,6 +516,20 @@ function startReciting() {
     }
     const allWords = words(transcript),
       finalWords = words(finalTranscript);
+    if (state.finding) {
+      const located = locatePassage(finalWords.join(" "));
+      state.locationMessage = located.message;
+      state.locationState = located.status;
+      state.locationCandidates = located.candidates.slice(0, 6);
+      state.transcript = transcript.trim();
+      state.feedback = located.message;
+      if (located.status === "matched") {
+        acceptLocation(located.match);
+        return;
+      }
+      render();
+      return;
+    }
     const progression = followVerses(
       passage,
       state.verse,
@@ -436,10 +541,14 @@ function startReciting() {
       for (const completed of progression.completed) {
         state.verse = completed.verse;
         if (completed.verse !== originalVerse) state.attemptId = null;
+        const rebased = withWordOffset(
+          completed,
+          completed.verse === anchorVerse ? anchorOffset : 0,
+        );
         state.readerResults[`${state.surah}:${completed.verse}`] =
-          presentationStatuses(completed.statuses);
+          presentationStatuses(rebased.statuses);
         if (completed.details.length || state.attemptId)
-          saveAttempt(completed.text, completed);
+          saveAttempt(completed.text, rebased);
         hadMistake ||= completed.details.length > 0;
       }
       if (hadMistake && state.feedbackMode === "experimental") tone();
@@ -469,8 +578,8 @@ function startReciting() {
     }
     const remaining = allWords.slice(consumedWords).join(" ");
     const finalRemaining = finalWords.slice(consumedWords).join(" ");
-    const result = compareRecitation(activeText(), remaining);
-    const confirmed = compareRecitation(activeText(), finalRemaining);
+    const result = compareCurrent(remaining);
+    const confirmed = compareCurrent(finalRemaining);
     // Browser interim hypotheses often revise words. Keep uncertain words
     // hidden until corrected/final rather than flashing false red mistakes.
     state.statuses = presentationStatuses(
@@ -523,19 +632,33 @@ function startReciting() {
   session.onend = () => {
     if (recognition !== session) return;
     state.listening = false;
+    if (state.finding) {
+      state.finding = false;
+      state.locationMessage =
+        "Microphone stopped. Choose a listed passage or restart Start anywhere.";
+    }
+    chooseLocated = null;
     recognition = null;
     endActivity();
     render();
   };
   try {
     session.start();
+    state.finding = findAnywhere;
+    state.locationState = findAnywhere ? "waiting" : "idle";
+    state.locationCandidates = [];
+    state.locationMessage = findAnywhere
+      ? "Recite a few words from anywhere in the Quran."
+      : "";
     state.recitationPage = true;
     state.focusMode = true;
     state.controlsOpen = false;
     state.settingsOpen = false;
     activeSince = Date.now();
     state.listening = true;
-    state.feedback = "Listening in Arabic… begin the current ayah.";
+    state.feedback = findAnywhere
+      ? "Listening in Arabic… recite a few words to find your page."
+      : "Listening in Arabic… begin the current ayah.";
   } catch {
     recognition = null;
     endActivity();
@@ -551,6 +674,7 @@ function bind() {
         requestId++;
         state.loading = false;
         state.tab = b.dataset.tab;
+        if (state.tab !== "Practice") state.challenge = null;
         if (state.tab === "Practice" || state.tab === "Reader") {
           state.mode =
             state.tab === "Practice" ? "Recall & recite" : "Read & reflect";
@@ -566,6 +690,7 @@ function bind() {
       (b.onclick = () => {
         stop();
         state.mode = b.dataset.mode;
+        if (state.mode === "Read & reflect") state.challenge = null;
         state.hidden = false;
         state.readerResults = {};
         resetAttempt();
@@ -596,7 +721,9 @@ function bind() {
     state.sound = !state.sound;
     render();
   });
-  on("listen", startReciting);
+  on("listen", () => startReciting(false));
+  on("locate-start", () => startReciting(true));
+  on("challenge-listen", () => startReciting(false));
   on("retry", () => {
     stop();
     delete state.readerResults[`${state.surah}:${state.verse}`];
@@ -740,6 +867,58 @@ function bindScreens() {
     const number = +document.getElementById("page-number").value;
     if (Number.isInteger(number) && number >= 1 && number <= PAGE_COUNT)
       openPage(number);
+  });
+  on("location-dismiss", () => {
+    if (state.finding) stop();
+    state.locationState = "idle";
+    render();
+  });
+  document.querySelectorAll("[data-location]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const match = state.locationCandidates[+b.dataset.location];
+        if (!match) return;
+        if (chooseLocated) chooseLocated(match);
+        else loadSurah(match.surah, match.verse);
+      }),
+  );
+  on("open-challenge", () => {
+    stop();
+    state.quizSurah = state.surah;
+    state.quizAyah = Math.min(state.verse + 1, state.verses.length - 1);
+    state.quizMessage = "";
+    state.tab = "Challenge";
+    state.controlsOpen = false;
+    render();
+  });
+  const quizSurah = document.getElementById("quiz-surah");
+  if (quizSurah)
+    quizSurah.onchange = (e) => {
+      state.quizSurah = +e.target.value;
+      state.quizAyah = 1;
+      state.quizMessage = "";
+      render();
+    };
+  const quizStyle = document.getElementById("quiz-style");
+  if (quizStyle)
+    quizStyle.onchange = (e) => {
+      state.quizStyle = e.target.value;
+      state.quizMessage = "";
+      render();
+    };
+  const quizAyah = document.getElementById("quiz-ayah");
+  if (quizAyah)
+    quizAyah.oninput = (e) => {
+      state.quizAyah = +e.target.value;
+    };
+  on("challenge-begin", () => beginChallenge(false));
+  on("challenge-random", () => beginChallenge(true));
+  on("challenge-end", () => {
+    stop();
+    state.challenge = null;
+    state.mode = "Read & reflect";
+    resetAttempt();
+    render();
   });
   on("focus", () => {
     state.focusMode = !state.focusMode;
@@ -887,8 +1066,7 @@ function bindScreens() {
   on("finish", () => {
     if (!state.transcript) return;
     stop();
-    const result = compareRecitation(
-      activeText(),
+    const result = compareCurrent(
       ayahTranscript(state.surah, state.verse, state.transcript, normalize),
       { finished: true },
     );
@@ -1026,6 +1204,10 @@ function turnPage(direction) {
 function fitQuranPage() {
   const panel = document.querySelector(".paged-mushaf");
   if (!panel || panel.clientHeight < 1) return;
+  if (panel.classList.contains("challenge-active")) {
+    panel.style.setProperty("--quran-size", state.fontSize + "px");
+    return;
+  }
   const requested = state.fontSize;
   const fits = (size) => {
     panel.style.setProperty("--quran-size", size + "px");
@@ -1106,3 +1288,39 @@ document.addEventListener(
   },
   { passive: true },
 );
+
+async function beginChallenge(random) {
+  let verse = state.quizAyah - 1;
+  if (random) {
+    const eligible = [];
+    for (let i = 0; i < chapter(state.quizSurah).verses.length; i++) {
+      try {
+        makeChallenge(state.quizSurah, i, state.quizStyle);
+        eligible.push(i);
+      } catch {}
+    }
+    if (!eligible.length) {
+      state.quizMessage = "No suitable ayah in this surah for this exercise.";
+      render();
+      return;
+    }
+    verse = eligible[Math.floor(Math.random() * eligible.length)];
+    state.quizAyah = verse + 1;
+  }
+  try {
+    const exercise = makeChallenge(state.quizSurah, verse, state.quizStyle);
+    await loadSurah(exercise.surah, exercise.targetVerse, "Practice");
+    state.challenge = exercise;
+    state.mode = "Recall & recite";
+    state.readerResults = {};
+    resetAttempt();
+    state.feedback =
+      exercise.style === "next"
+        ? "Read the prompt ayah, then recite what follows."
+        : "Read the visible opening, then recite the hidden remainder.";
+    render();
+  } catch (error) {
+    state.quizMessage = error.message;
+    render();
+  }
+}
