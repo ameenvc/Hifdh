@@ -661,3 +661,71 @@ test("recitation automatically displays the next standard page without restartin
   );
   a.close();
 });
+
+test("top surah selector has all chapters and preserves Memorize mode when opening another surah", async () => {
+  const a = app();
+  await tick();
+  a.tab("Practice");
+  const select = a.w.document.getElementById("surah-picker");
+  assert.equal(select.options.length, 114);
+  select.value = "10";
+  select.dispatchEvent(new a.w.Event("change", { bubbles: true }));
+  assert.equal(a.w.document.getElementById("surah-picker").value, "10");
+  assert.ok(
+    a.w.document.querySelector(
+      '[data-chapter="10"][data-verse="0"][aria-current="true"]',
+    ),
+  );
+  assert.match(
+    a.w.document.querySelector(".segmented .selected").textContent,
+    /Memorize/,
+  );
+  a.close();
+});
+test("Next and Previous arrows, keyboard navigation and swipes have consistent directions", async () => {
+  const a = app();
+  await tick();
+  assert.equal(
+    a.w.document.querySelector("#page-next path").getAttribute("d"),
+    a.w.document.querySelector("#next path").getAttribute("d"),
+  );
+  assert.equal(
+    a.w.document.querySelector("#page-prev path").getAttribute("d"),
+    a.w.document.querySelector("#prev path").getAttribute("d"),
+  );
+  a.w.document.dispatchEvent(
+    new a.w.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+  );
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "2");
+  a.w.document.dispatchEvent(
+    new a.w.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }),
+  );
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "1");
+  const panel = a.w.document.querySelector(".mushaf");
+  const start = new a.w.Event("touchstart", { bubbles: true });
+  Object.defineProperty(start, "touches", {
+    value: [{ clientX: 230, clientY: 250 }],
+  });
+  panel.dispatchEvent(start);
+  const end = new a.w.Event("touchend", { bubbles: true });
+  Object.defineProperty(end, "changedTouches", {
+    value: [{ clientX: 80, clientY: 260 }],
+  });
+  panel.dispatchEvent(end);
+  assert.equal(a.w.document.querySelector(".mushaf").dataset.page, "2");
+  a.close();
+});
+test("ordinary taps do not redraw the reader or remove focused controls", async () => {
+  const a = app();
+  await tick();
+  const picker = a.w.document.getElementById("surah-picker");
+  picker.click();
+  assert.equal(a.w.document.getElementById("surah-picker"), picker);
+  a.click("reader-settings");
+  const input = a.w.document.getElementById("page-number");
+  input.focus();
+  input.click();
+  assert.equal(a.w.document.getElementById("page-number"), input);
+  assert.equal(a.w.document.activeElement, input);
+  a.close();
+});

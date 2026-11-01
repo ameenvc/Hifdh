@@ -146,7 +146,7 @@ function render() {
       .join(
         "",
       )}</nav><div class="sidebar-bottom"><div class="small-flower">✧</div><p>Little by little,<br>the heart remembers.</p><span>YOUR JOURNEY, YOUR PACE</span></div><div class="profile"><div class="avatar">Y</div><div>Your journey<small>Growing every day</small></div><span>↗</span></div></aside>
-<main class="${reading ? "reader-view" : ""}"><header><div class="breadcrumb">My workspace <span>/</span> ${state.tab === "Practice" ? "Memorization" : escape(state.tab)}</div><div class="header-right"><span class="today">☀ &nbsp; A good day to begin</span><div class="avatar mini">Y</div></div></header><section class="content ${reading ? "reader-content" : ""}">${reading ? '<div class="reader-intro"><span class="kicker">YOUR QURAN, CLOSE TO HEART</span><h1>Read. Remember. Return.</h1><button class="text-button" id="resume-bookmark">' + (state.bookmark ? "Resume bookmark →" : "Choose a surah →") + "</button></div>" : ""}<div class="eyebrow">السَّلَامُ عَلَيْكُمْ <span>PEACE BE UPON YOU</span></div><div class="page-title"><div><h1>A little closer, every ayah.</h1><p>Make room for the Quran. Let each verse settle in your heart.</p></div><span class="date-pill">✧ &nbsp; Your daily connection</span></div>
+<main class="${reading ? "reader-view" : ""}"><header><div class="breadcrumb">My workspace <span>/</span> ${state.tab === "Practice" ? "Memorization" : escape(state.tab)}</div><div class="header-right"><span class="today">☀ &nbsp; A good day to begin</span><div class="avatar mini">Y</div></div></header><section class="content ${reading ? "reader-content" : ""}"><h1 class="sr-only">${reading ? escape(current().englishName) + " Quran reader" : escape(state.tab)}</h1>${reading ? '<div class="reader-intro"><span class="kicker">YOUR QURAN, CLOSE TO HEART</span><h1>Read. Remember. Return.</h1><button class="text-button" id="resume-bookmark">' + (state.bookmark ? "Resume bookmark →" : "Choose a surah →") + "</button></div>" : ""}<div class="eyebrow">السَّلَامُ عَلَيْكُمْ <span>PEACE BE UPON YOU</span></div><div class="page-title"><div><h2 class="workspace-title">A little closer, every ayah.</h2><p>Make room for the Quran. Let each verse settle in your heart.</p></div><span class="date-pill">✧ &nbsp; Your daily connection</span></div>
 ${reading ? readerScreen(state, surahs, readerWords, recitationFeedback) : state.tab === "Library" ? library() : state.tab === "Mistakes" ? mistakesScreen(state) : state.tab === "Search" ? searchScreen(state) : progressScreen(state, surahs)}
 <footer><span>◈ &nbsp; Quran text: <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project</a> · Uthmani</span><span>Consistency over perfection.</span></footer></section></main>`;
   bind();
@@ -202,7 +202,7 @@ function renderWords() {
         !state.revealAll &&
         status === "pending" &&
         i >= state.hints;
-      return `<span class="word ${status} ${masked ? "masked-word" : ""}" ${masked ? 'aria-label="Hidden word"' : ""}>${masked ? "•••" : escape(word)}</span>`;
+      return `<span class="word ${status} ${masked ? "masked-word" : ""}" ${masked ? 'role="img" aria-label="Hidden word"' : ""}>${masked ? "•••" : escape(word)}</span>`;
     })
     .join(" ");
 }
@@ -699,7 +699,7 @@ function readerWords(verse, index, number = state.surah) {
       const masked =
         state.mode === "Recall & recite" &&
         (!statuses[i] || statuses[i] === "pending");
-      return `<span class="word ${statuses[i] || ""} ${masked ? "masked-word" : ""}" ${masked ? 'aria-label="Hidden word"' : ""}>${masked ? "•••" : escape(word)}</span>`;
+      return `<span class="word ${statuses[i] || ""} ${masked ? "masked-word" : ""}" ${masked ? 'role="img" aria-label="Hidden word"' : ""}>${masked ? "•••" : escape(word)}</span>`;
     })
     .join(" ");
 }
@@ -828,7 +828,7 @@ function bindScreens() {
     writeLocal("hifdh-theme", state.theme);
     render();
   });
-  document.querySelectorAll("[data-theme]").forEach(
+  document.querySelectorAll("button[data-theme]").forEach(
     (b) =>
       (b.onclick = () => {
         state.theme = b.dataset.theme;
@@ -849,6 +849,13 @@ function bindScreens() {
     state.settingsOpen = !state.settingsOpen;
     render();
   });
+  const surahPicker = document.getElementById("surah-picker");
+  if (surahPicker)
+    surahPicker.onchange = (event) => {
+      const number = Number(event.target.value);
+      loadSurah(number, 0, state.tab === "Practice" ? "Practice" : "Reader");
+      document.getElementById("surah-picker")?.focus();
+    };
   const font = document.getElementById("font-size");
   if (font)
     font.oninput = (e) => {
@@ -1056,10 +1063,10 @@ document.addEventListener("keydown", (event) => {
     event.metaKey
   )
     return;
-  if (event.key === "ArrowLeft") {
+  if (event.key === "ArrowRight") {
     event.preventDefault();
     turnPage(1);
-  } else if (event.key === "ArrowRight") {
+  } else if (event.key === "ArrowLeft") {
     event.preventDefault();
     turnPage(-1);
   }
@@ -1068,7 +1075,11 @@ let pageTouch = null;
 document.addEventListener(
   "touchstart",
   (event) => {
-    if (event.target.closest(".paged-mushaf") && event.touches.length === 1)
+    if (
+      event.target?.closest?.(".paged-mushaf") &&
+      !event.target.closest("button,input,select") &&
+      event.touches.length === 1
+    )
       pageTouch = { x: event.touches[0].clientX, y: event.touches[0].clientY };
     else pageTouch = null;
   },
@@ -1083,7 +1094,15 @@ document.addEventListener(
       dy = touch.clientY - pageTouch.y;
     pageTouch = null;
     if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.6)
-      turnPage(dx > 0 ? 1 : -1);
+      turnPage(dx < 0 ? 1 : -1);
+  },
+  { passive: true },
+);
+
+document.addEventListener(
+  "touchcancel",
+  () => {
+    pageTouch = null;
   },
   { passive: true },
 );
