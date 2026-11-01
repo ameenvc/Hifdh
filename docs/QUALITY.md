@@ -26,6 +26,15 @@ Assessed on 1 November 2026. Scope: the production web build, Quran data integri
 - Increased contrast for chapter numbers, library labels and the search field label in white view.
 - Corrected activity-chart semantics so the date/session labels have a valid accessible role.
 
+## Responsive button alignment
+
+- Fixed top toolbar alignment by sharing button/select heights and grid positions.
+- Gave Previous and Next equal widths and centered the page counter independently of their labels.
+- Anchored the compact bottom icon and its dropdown to the reader’s right inset at every checked width. Dropdown actions share column widths, row heights and icon alignment.
+- Standardized challenge and review action sizing, with stacked actions on narrow phones.
+- `npm run test:layout` passed exact geometry checks at 320×568, 390×844, 520×844, 521×844, 768×1024, 850×844, 851×844, 1024×768, 1440×900, 1920×1080 and 844×390. Both themes and reading/recitation modes were checked, plus challenge actions at five widths. There were no horizontal overflows or browser runtime errors. Recognition was mocked to enter recording mode; this does not test real microphone behavior.
+- These are Chromium checks, not physical iPhone/Safari validation. The 71 existing automated tests also pass, and the dependency audit reports zero vulnerabilities.
+
 ## Start-anywhere and ayah challenges
 
 - **Start anywhere:** the bottom controls can listen for an Arabic phrase and locate its source surah, ayah, starting word and standard page. It matches recognized text against the bundled corpus, including starts in the middle of an ayah. It does not judge pronunciation.
@@ -50,6 +59,8 @@ Passage finding depends on what the browser recognizes. Misheard or unsupported 
 ```sh
 npm ci
 npm test
+# Requires system Chromium or: npx playwright install chromium
+npm run test:layout
 npm run build -- --base=/Hifdh/
 npm run preview -- --port 4173 --base=/Hifdh/
 npm audit --json

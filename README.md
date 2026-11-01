@@ -13,6 +13,8 @@ npm run dev -- --port 5173
 
 `npm test` checks Arabic comparison, activity calculations, and interactions against the actual bundled application in a DOM environment. `npm run build` creates the production site in `dist`; `npm run preview` serves it locally.
 
+For responsive button alignment checks, run `npm run test:layout`. This builds and serves the production site locally, then checks 11 viewport sizes (320–1920 pixels wide, including landscape) in both themes and reading/recitation modes. Install Chromium with `npx playwright install chromium` if no system Chromium is available; `PLAYWRIGHT_CHROMIUM_EXECUTABLE` can point to another Chromium executable.
+
 ## Features
 
 - **Start anywhere:** open the bottom controls and choose Start anywhere, then recite a short phrase and pause briefly. A unique recognized phrase opens its surah/ayah/page, even from the middle of an ayah. Repeated phrases show choices or ask for more words. No confident match means no automatic jump.
