@@ -3903,3 +3903,5 @@ body[data-theme] .paged-mushaf .mushaf-text {
 body[data-theme] .paged-mushaf.page-overflow {
   overflow-y: auto;
 }
+/* Compact bottom launcher, with a comfortable touch target. */
+.controls-toggle{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;border-radius:50%;margin-left:auto;justify-content:center;gap:0}.controls-toggle>svg{width:20px;height:20px}
