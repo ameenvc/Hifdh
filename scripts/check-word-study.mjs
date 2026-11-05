@@ -67,6 +67,8 @@ try {
   );
   assert.match(await page.locator("#word-study-panel").textContent(), /هدي/);
   const bounds = await page.locator("#word-study-panel").boundingBox();
+  const reading = await page.locator(".mushaf").boundingBox();
+  assert.ok(bounds.y >= reading.y && bounds.y + bounds.height <= reading.y + reading.height + 1, "Study card must leave reader controls accessible");
   assert.ok(
     bounds.x >= 0 &&
       bounds.x + bounds.width <= 390 &&

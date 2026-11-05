@@ -143,13 +143,16 @@ function showWord(element, segments, focus = false) {
   document.body.append(panel);
   // Place the card above or below its word so hover never blocks the tap target.
   const rect = element.getBoundingClientRect();
-  const below = innerHeight - rect.bottom - 12,
-    above = rect.top - 12;
+  const reading = element.closest(".mushaf").getBoundingClientRect();
+  const top = Math.max(8, reading.top), bottom = Math.min(innerHeight - 8, reading.bottom);
+  const below = bottom - rect.bottom - 8, above = rect.top - top - 8;
   const space = Math.max(below, above);
-  panel.style.maxHeight = `${Math.min(520, Math.max(100, space - 12))}px`;
+  panel.style.maxHeight = `${Math.min(520, Math.max(48, space - 8))}px`;
   panel.style.bottom = "auto";
+  const height = panel.getBoundingClientRect().height;
+  panel.style.top = `${Math.max(top, Math.min(bottom - height, below >= above ? rect.bottom + 8 : rect.top - height - 8))}px`;
   if (focus) close.focus({ preventScroll: true });
-  panel.style.top = `${Math.max(8, below >= above ? rect.bottom + 8 : rect.top - panel.getBoundingClientRect().height - 8)}px`;
+
 }
 async function load(s) {
   if (!cache.has(s))
