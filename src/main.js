@@ -900,6 +900,8 @@ function bindScreens() {
         else loadSurah(number, index, state.tab);
       }),
   );
+  on("study-grammar-quick", () => { toggleStudy("grammar"); render(); });
+  on("study-repeated-quick", () => { toggleStudy("repeated"); render(); });
   on("study-grammar", () => { toggleStudy("grammar"); render(); });
   on("study-repeated", () => { toggleStudy("repeated"); render(); });
   on("page-prev", () => turnPage(-1));

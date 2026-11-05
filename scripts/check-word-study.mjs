@@ -49,8 +49,7 @@ try {
   await page.goto(url);
   await page.evaluate(() => document.fonts.ready);
   const original = await page.locator(".mushaf-text").allTextContents();
-  await page.locator("#controls-toggle").click();
-  await page.locator("#study-grammar").click();
+  await page.locator("#study-grammar-quick").click();
   await page.keyboard.press("Escape");
   const word = page.locator('[data-study-word="1:5:0"]');
   await word.waitFor();
@@ -76,8 +75,7 @@ try {
   );
 
   await page.locator("#word-study-panel>button").click();
-  await page.locator("#controls-toggle").click();
-  await page.locator("#study-repeated").click();
+  await page.locator("#study-repeated-quick").click();
   await page.keyboard.press("Escape");
   assert.ok((await page.locator(".repeated-word").count()) > 0);
   assert.deepEqual(

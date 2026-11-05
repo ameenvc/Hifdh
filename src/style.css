@@ -4771,3 +4771,10 @@ body[data-theme] .mushaf .repeated-word.repeat-3:not(.mistake) { color:var(--rep
 #word-study-panel .study-features { font-size:11px; color:var(--muted); }
 #word-study-panel a { color:var(--accent); }
 .study-help { color:var(--muted); font-size:11px; line-height:1.5; }
+/* Word study is directly discoverable without scrolling the controls sheet. */
+.study-toolbar { display:flex; align-items:center; gap:8px; flex-shrink:0; padding:6px 16px; border-bottom:1px solid var(--line); background:var(--surface); }
+.study-toolbar button { display:inline-flex; align-items:center; justify-content:center; gap:5px; min-height:36px; padding:5px 10px; border:1px solid var(--line); border-radius:7px; background:var(--raised); color:var(--text); font-size:12px; white-space:nowrap; }
+.study-toolbar button[aria-pressed="true"] { background:var(--button); color:var(--on-button); border-color:var(--button); }
+.study-toolbar svg { width:15px; height:15px; }
+.study-toolbar > span { color:var(--muted); font-size:11px; }
+@media(max-width:520px) { .study-toolbar { gap:6px; padding:5px 12px; } .study-toolbar button { font-size:11px; padding-inline:8px; } .study-toolbar > span { display:none; } }
