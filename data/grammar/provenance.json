@@ -1,0 +1,9 @@
+{
+  "source": "Quranic Arabic Corpus v0.4",
+  "mirror": "cltk/arabic_morphology_quranic-corpus",
+  "commit": "b5abd4d8fadd775f3329f34cbe10531fac71e391",
+  "sha256": "a1d12923815341face765083805d2148ed2d9f5cc3f7d6665219d887675d8c46",
+  "matchedWords": 77104,
+  "totalDisplayWords": 77433,
+  "mapping": "Same word count and normalized spelling required; unmatched words have no annotation."
+}
