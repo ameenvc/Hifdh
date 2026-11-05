@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test",
-    "test:layout": "npm run build -- --base=/Hifdh/ && node scripts/check-layout.mjs"
+    "test:layout": "npm run build -- --base=/Hifdh/ && node scripts/check-layout.mjs",
+    "test:study": "npm run build -- --base=/Hifdh/ && node scripts/check-word-study.mjs"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",

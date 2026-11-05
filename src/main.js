@@ -1,3 +1,4 @@
+import { bindWordStudy, toggleStudy } from "./word-study.js";
 import "@fontsource/amiri/arabic-400.css";
 import "@fontsource/dm-sans/latin-400.css";
 import "@fontsource/dm-sans/latin-500.css";
@@ -169,6 +170,7 @@ ${reading ? readerScreen(state, surahs, readerWords, recitationFeedback) : state
   if (mushaf)
     mushaf.scrollTop = oldPage === mushaf.dataset.page ? scrollTop : 0;
   fitQuranPage();
+  bindWordStudy();
 }
 function library() {
   return `<div class="section-heading"><h2>Find your next surah</h2><span>114 chapters · one journey</span></div><div class="library-grid">${surahs.map((s) => `<button class="library-card" data-surah="${s.number}"><span class="chapter-number">${s.number}</span><h2>${escape(s.englishName)}</h2><p lang="ar">${escape(s.name)}</p><small>${s.numberOfAyahs} AYAHS &nbsp; →</small></button>`).join("")}</div><p class="library-note">All 114 surahs are bundled. Quran text: Tanzil Project · Uthmani, Hafs numbering.</p>`;
@@ -246,7 +248,7 @@ function renderWords() {
         !state.revealAll &&
         status === "pending" &&
         i >= state.hints;
-      return `<span class="word ${status} ${masked ? "masked-word" : ""}" ${masked ? 'role="img" aria-label="Hidden word"' : ""}>${masked ? "•••" : escape(word)}</span>`;
+      return `<span class="word ${status} ${masked ? "masked-word" : ""}" ${masked ? 'role="img" aria-label="Hidden word"' : `data-study-word="${state.surah}:${state.verse}:${i}"`}>${masked ? "•••" : escape(word)}</span>`;
     })
     .join(" ");
 }
@@ -863,7 +865,7 @@ function readerWords(verse, index, number = state.surah) {
       const masked =
         state.mode === "Recall & recite" &&
         (!statuses[i] || statuses[i] === "pending");
-      return `<span class="word ${statuses[i] || ""} ${masked ? "masked-word" : ""}" ${masked ? 'role="img" aria-label="Hidden word"' : ""}>${masked ? "•••" : escape(word)}</span>`;
+      return `<span class="word ${statuses[i] || ""} ${masked ? "masked-word" : ""}" ${masked ? 'role="img" aria-label="Hidden word"' : `data-study-word="${number}:${index}:${i}"`}>${masked ? "•••" : escape(word)}</span>`;
     })
     .join(" ");
 }
@@ -898,6 +900,8 @@ function bindScreens() {
         else loadSurah(number, index, state.tab);
       }),
   );
+  on("study-grammar", () => { toggleStudy("grammar"); render(); });
+  on("study-repeated", () => { toggleStudy("repeated"); render(); });
   on("page-prev", () => turnPage(-1));
   on("page-next", () => turnPage(1));
   on("page-go", () => {
