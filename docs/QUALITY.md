@@ -89,3 +89,7 @@ All 79 automated tests pass. `npm run test:study` checks phone tap, desktop hove
 ## Study-tool discoverability — 5 November 2026
 
 Grammar and Repeated words now have directly visible buttons below Read/Memorize, in addition to the bottom menu. The study browser regression uses those visible buttons to enable both features and open verb details. Existing word-study and 11-viewport layout checks pass for this placement.
+
+## Default study tools — 5 November 2026
+
+Grammar and repeated-word colours now start enabled, including a one-time upgrade from the old opt-in preferences. Subsequent choices to disable either tool persist under the new versioned preference. The study browser regression checks initial enabled controls, word details and colours, then disables both and verifies the saved disabled state after reload.

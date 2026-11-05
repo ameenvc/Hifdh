@@ -17,6 +17,7 @@ For responsive button alignment checks, run `npm run test:layout`. This builds a
 
 ## Features
 
+- **Grammar and repeated-word colours are on by default.** The updated defaults apply once when upgrading; later choices to switch either tool off remain saved.
 - **Grammar and base forms:** use the visible **Grammar** button below Read/Memorize (or the bottom menu) and switch **Grammar on**, then hover a visible word on desktop or tap it on your phone. The card shows corpus part-of-speech, segment analysis, root, lemma/base form and supplied tense/case/mood tags. This is word morphology (ṣarf), not complete sentence-level naḥw/iʿrāb. Corpus v0.4 annotations are attached only when word positions and normalized spellings agree: 77,104 of 77,433 displayed words match; other words show an unavailable message rather than a guessed analysis. Grammar files load per displayed surah, so the first use needs connectivity.
 - **Repeated-word colours:** switch **Repeated words on** beside Grammar below Read/Memorize. Equal normalized word spellings share a colour across the Quran; the four colours are reused and do not identify common roots. Tap/hover to see the occurrence count. Unnumbered opening Bismillah is excluded from counts. Hidden memorization words reveal no study details, and red recitation alerts override study colours. Both study preferences are saved on this browser.
 

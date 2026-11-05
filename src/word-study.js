@@ -48,11 +48,11 @@ export function describeSegments(segments) {
       .join(" · "),
   }));
 }
-const options = { grammar: false, repeated: false };
+const options = { grammar: true, repeated: true };
 try {
   Object.assign(
     options,
-    JSON.parse(localStorage.getItem("hifdh-word-study") || "{}"),
+    JSON.parse(localStorage.getItem("hifdh-word-study-v2") || "{}"),
   );
 } catch {}
 export const studyOptions = options;
@@ -85,7 +85,7 @@ export function repeatColour(word) {
 export function toggleStudy(option) {
   options[option] = !options[option];
   try {
-    localStorage.setItem("hifdh-word-study", JSON.stringify(options));
+    localStorage.setItem("hifdh-word-study-v2", JSON.stringify(options));
   } catch {}
 }
 export function closeWordStudy(restoreFocus = false) {

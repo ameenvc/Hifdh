@@ -49,7 +49,7 @@ try {
   await page.goto(url);
   await page.evaluate(() => document.fonts.ready);
   const original = await page.locator(".mushaf-text").allTextContents();
-  await page.locator("#study-grammar-quick").click();
+  assert.equal(await page.locator("#study-grammar-quick").getAttribute("aria-pressed"), "true");
   await page.keyboard.press("Escape");
   const word = page.locator('[data-study-word="1:5:0"]');
   await word.waitFor();
@@ -75,7 +75,7 @@ try {
   );
 
   await page.locator("#word-study-panel>button").click();
-  await page.locator("#study-repeated-quick").click();
+  assert.equal(await page.locator("#study-repeated-quick").getAttribute("aria-pressed"), "true");
   await page.keyboard.press("Escape");
   assert.ok((await page.locator(".repeated-word").count()) > 0);
   assert.deepEqual(
@@ -112,6 +112,13 @@ try {
   );
   await page.locator('[data-mode="Recall & recite"]').click();
   assert.equal(await page.locator(".masked-word[data-study-word]").count(), 0);
+  await page.locator('[data-mode="Read & reflect"]').click();
+  await page.locator("#study-grammar-quick").click();
+  await page.locator("#study-repeated-quick").click();
+  await page.reload();
+  assert.equal(await page.locator("#study-grammar-quick").getAttribute("aria-pressed"), "false");
+  assert.equal(await page.locator("#study-repeated-quick").getAttribute("aria-pressed"), "false");
+  assert.equal(await page.locator(".repeated-word").count(), 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: phone tap, desktop hover, corpus verb details, theme, word colours, unchanged Quran text and hidden-word protection.",
