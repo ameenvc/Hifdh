@@ -69,3 +69,7 @@ npm audit --json
 ```
 
 Browser checks were run against that local production build with Chromium/Playwright and axe-core. Recognition and review fixtures were synthetic; no real microphone recordings or user secrets were used. The assessment does not establish that GitHub Pages has finished deploying or that external reciter audio is currently reachable.
+
+## Recitation access and microphone continuity — 5 November 2026
+
+Added a visible Check my recitation button and live feedback outside the secondary dropdown. Browser-ended sessions reconnect with finalized transcript and passage cursor preserved; three consecutive empty sessions stop retries. Pausing cancels pending reconnects, and permission/device errors do not retry automatically. All 74 automated tests pass, including reconnect continuity, cancellation and denied-permission cases. The responsive layout suite also checks the persistent button in both themes and reader/reciting modes. This improves browser session handling, not acoustic recognition accuracy. Real microphone accuracy and physical iPhone behavior remain unverified.

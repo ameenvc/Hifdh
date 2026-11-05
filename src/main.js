@@ -455,6 +455,8 @@ function startReciting(findAnywhere = false) {
   session.lang = "ar-SA";
   session.continuous = true;
   session.interimResults = true;
+  session.maxAlternatives = 1;
+  let priorTranscript = "", sessionFinal = "", restarts = 0, fatalError = false;
   let lastFinal = "",
     consumedWords = 0;
   const transcriptSurah = state.surah,
@@ -514,6 +516,10 @@ function startReciting(findAnywhere = false) {
       if (e.results[i].isFinal)
         finalTranscript += e.results[i][0].transcript + " ";
     }
+    sessionFinal = finalTranscript;
+    transcript = priorTranscript + transcript;
+    finalTranscript = priorTranscript + finalTranscript;
+    if (sessionFinal.trim()) restarts = 0;
     const allWords = words(transcript),
       finalWords = words(finalTranscript);
     if (state.finding) {
@@ -620,6 +626,12 @@ function startReciting(findAnywhere = false) {
 
   session.onerror = (e) => {
     if (recognition !== session) return;
+    if (e.error === "no-speech") {
+      state.feedback = "No speech heard yet. Listening again… move closer to the microphone.";
+      render();
+      return;
+    }
+    fatalError = true;
     state.feedback =
       e.error === "not-allowed"
         ? "Microphone access was denied. Allow it in browser settings to recite."
@@ -631,7 +643,31 @@ function startReciting(findAnywhere = false) {
   };
   session.onend = () => {
     if (recognition !== session) return;
+    // Mobile browsers end recognition after pauses. Preserve finalized words
+    // and the passage cursor when restarting instead of resetting the attempt.
+    if (!fatalError && state.listening && restarts < 3) {
+      priorTranscript += sessionFinal;
+      sessionFinal = "";
+      restarts++;
+      state.feedback = "Reconnecting microphone… keep your place.";
+      render();
+      setTimeout(() => {
+        if (recognition !== session || !state.listening) return;
+        try {
+          session.start();
+          state.feedback = "Listening in Arabic… continue reciting.";
+        } catch {
+          fatalError = true;
+          state.feedback = "Microphone could not reconnect. Tap Check my recitation to retry.";
+          session.onend();
+        }
+        render();
+      }, 350);
+      return;
+    }
     state.listening = false;
+    if (!fatalError) state.feedback = "Microphone paused after repeated silence. Tap Check my recitation to resume.";
+    state.controlsOpen = true;
     if (state.finding) {
       state.finding = false;
       state.locationMessage =
@@ -721,6 +757,7 @@ function bind() {
     state.sound = !state.sound;
     render();
   });
+  on("check-recitation", () => startReciting(false));
   on("listen", () => startReciting(false));
   on("locate-start", () => startReciting(true));
   on("challenge-listen", () => startReciting(false));

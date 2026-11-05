@@ -4742,3 +4742,15 @@ body[data-theme] .paged-mushaf .chapter-ornament h2 {
 body[data-theme] .paged-mushaf .chapter-ornament > span {
   font-size: clamp(20px, var(--quran-size), 28px);
 }
+/* Keep the app's main task visible outside the secondary controls menu. */
+.reader-controls > .controls-dropdown { display: flex; align-items: center; gap: 14px; }
+body[data-theme] .check-recitation {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 9px 16px; border-radius: 24px;
+  background: var(--button); color: var(--on-button); border: 1px solid var(--button);
+  font-size: 13px; font-weight: 600;
+}
+.check-recitation svg { width: 19px; height: 19px; flex-shrink: 0; }
+.check-recitation[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--accent); }
+@media (max-width: 399px) { body[data-theme] .check-recitation { font-size: 12px; padding-inline: 12px; } }
+.recitation-live-status { margin: 0 0 8px; color: var(--text); font-size: 11px; line-height: 1.4; }

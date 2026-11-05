@@ -855,3 +855,48 @@ test("Start anywhere finds a short unique ayah after Bismillah and continues on 
   assert.equal(a.tones, 0);
   a.close();
 });
+
+test("main reader exposes checking directly and pause cancels microphone reconnect", async () => {
+  const a = app();
+  try {
+    assert.match(a.w.document.getElementById("check-recitation").textContent, /Check my recitation/);
+    a.click("check-recitation");
+    assert.equal(a.w.document.getElementById("check-recitation").getAttribute("aria-pressed"), "true");
+    let starts = 0;
+    a.speech.start = () => starts++;
+    a.speech.onend();
+    a.click("check-recitation");
+    await new Promise(resolve => setTimeout(resolve, 420));
+    assert.equal(starts, 0);
+  } finally { a.close(); }
+});
+
+test("microphone reconnect preserves finalized words across recognition sessions", async () => {
+  const a = app(undefined, {});
+  try {
+    a.click("check-recitation");
+    a.say("بسم الله");
+    let starts = 0;
+    a.speech.start = () => starts++;
+    a.speech.onend();
+    await new Promise(resolve => setTimeout(resolve, 420));
+    assert.equal(starts, 1);
+    a.say("الرحمن الرحيم");
+    assert.equal(a.w.document.querySelectorAll(".word.mistake").length, 0);
+    assert.match(a.w.document.querySelector(".reader-chapter").textContent, /Ayah 1:2/);
+  } finally { a.close(); }
+});
+
+test("denied microphone permission does not enter an automatic reconnect loop", async () => {
+  const a = app();
+  try {
+    a.click("check-recitation");
+    let starts = 0;
+    a.speech.start = () => starts++;
+    a.speech.onerror({error: "not-allowed"});
+    a.speech.onend();
+    await new Promise(resolve => setTimeout(resolve, 420));
+    assert.equal(starts, 0);
+    assert.match(a.w.document.body.textContent, /Microphone access was denied/);
+  } finally { a.close(); }
+});

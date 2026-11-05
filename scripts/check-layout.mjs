@@ -122,6 +122,10 @@ try {
             };
           }),
           toggle = await box("#controls-toggle");
+        const check = await box("#check-recitation");
+        assert.ok(check && check.x >= 0 && check.height >= 44 && check.y + check.height <= height, `${tag} main recitation button clipped`);
+        assert.ok(check.x + check.width < toggle.x, `${tag} main action overlaps menu`);
+        close(check.y, toggle.y, `${tag} main action alignment`);
         close(toggle.width, 44, `${tag} compact icon width`);
         close(toggle.height, 44, `${tag} compact icon height`);
         close(
