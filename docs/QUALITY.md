@@ -113,3 +113,9 @@ Word cards show the main stem first, with articles and other attached segments p
 ## Recitation mode access — 5 November 2026
 
 The main microphone button now opens a Normal recitation / Hifdh chooser instead of silently using the last mode hidden in settings. Choosing either option starts recognition directly from that user gesture; the active mode is visible above the dock. A tap during listening still pauses directly. The 84 automated tests pass. Production browser checks exercise both choices on a phone viewport with mocked speech: normal text stays visible, Hifdh words are hidden, and both enter listening state. Actual iPhone microphone recognition remains unverified.
+
+## Faster live reveal — 5 November 2026
+
+Previously only finalized speech advanced across ayahs, which could leave Hifdh text hidden until a browser finalized several ayahs together. Added a separate reversible visual preview that reveals matched interim words across exact completed ayahs and previews the next page when needed. Revisions replace the preview; pausing discards it. Finalized transcripts still control saved feedback, tones and committed progression. Interim mismatches neither turn red nor advance through uncertain completed ayahs. Scrolling follows the latest matched word instead of the bottom of a long verse.
+
+All 86 automated tests pass. New interaction regressions cover three ayahs in one interim result, rollback on revision, finalization without duplicate advancement, and provisional page turning without committed progress. The production study browser suite also exercises multi-ayah interim reveal in Hifdh mode. These use synthetic recognition events; actual acoustic accuracy or provider latency has not been measured. Browsers that delay or omit interim events may still reveal text late; the app cannot make the recognition provider deliver speech sooner.

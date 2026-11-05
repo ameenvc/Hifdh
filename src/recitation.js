@@ -253,3 +253,26 @@ export function followVerses(verses, start, spoken) {
   }
   return { verse, consumed, completed, ended: verse === verses.length };
 }
+
+// Visual-only progress: never commits an attempt, mistake, or passage cursor.
+// Stop at any uncertain completed ayah; only exact interim matches move ahead.
+export function previewVerses(verses, start, spoken) {
+  const tokens = spokenTokens(spoken);
+  const followed = followVerses(verses, start, spoken);
+  const results = {};
+  let verse = start,
+    consumed = 0;
+  for (const completed of followed.completed) {
+    if (!completed.complete) break;
+    results[completed.verse] = completed.statuses;
+    consumed += spokenTokens(completed.text).length;
+    verse = completed.verse + 1;
+  }
+  if (verse < verses.length) {
+    results[verse] = compareRecitation(
+      verses[verse],
+      tokens.slice(consumed).join(" "),
+    ).statuses.map((s) => (s === "correct" ? "correct" : "pending"));
+  }
+  return { verse: Math.min(verse, verses.length - 1), results };
+}

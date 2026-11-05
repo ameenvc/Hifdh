@@ -48,7 +48,9 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.addInitScript(() => {
     window.SpeechRecognition = class {
-      start() {}
+      start() {
+        window.__hifdhSpeech = this;
+      }
       abort() {
         this.onend?.();
       }
@@ -272,6 +274,28 @@ try {
     await page.locator(".recitation-live-status").textContent(),
     /Hifdh/,
   );
+  await page.locator("#check-recitation").click();
+  await page.locator("#surah-picker").selectOption("1");
+  await page.locator("#check-recitation").click();
+  await page.locator("#start-hifdh-recitation").click();
+  await page.evaluate(() =>
+    window.__hifdhSpeech.onresult({
+      results: [
+        Object.assign(
+          [
+            {
+              transcript:
+                "بسم الله الرحمن الرحيم الحمد لله رب العالمين الرحمن الرحيم",
+            },
+          ],
+          { isFinal: false },
+        ),
+      ],
+    }),
+  );
+  assert.ok((await page.locator('[data-study-word="1:2:0"]').count()) > 0);
+  assert.match(await page.locator(".reader-chapter").textContent(), /Ayah 1:4/);
+  assert.equal(await page.locator(".word.mistake").count(), 0);
   await page.locator("#check-recitation").click();
   assert.deepEqual(errors, []);
   console.log(

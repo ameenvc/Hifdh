@@ -1,3 +1,4 @@
+import { chapter, practiceText } from "../src/quran.js";
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 import { build } from "vite";
@@ -582,7 +583,6 @@ test("only user-confirmed mistakes become red in safe mode and correct-recitatio
 });
 
 import standardText from "../src/data/simple-clean.json" with { type: "json" };
-import { practiceText } from "../src/quran.js";
 test("Yunus session boundaries remain aligned across punctuation-only recognition tokens", async () => {
   const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
@@ -951,4 +951,40 @@ test("a microphone start failure remains visible after choosing a mode", () => {
   assert.equal(a.w.document.getElementById('check-recitation').getAttribute('aria-pressed'),'false');
   assert.match(a.w.document.querySelector('.recitation-status').textContent,/Could not start the microphone/);
  } finally {a.close();}
+});
+
+
+test("interim speech reveals multiple ayahs immediately and revisions safely roll back the preview",()=>{
+ const a=app();
+ try {
+  a.tab('Practice');a.click('listen');
+  const text='بسم الله الرحمن الرحيم الحمد لله رب العالمين الرحمن الرحيم';
+  a.say(text,false);
+  assert.ok(a.w.document.querySelector('[data-study-word="1:2:0"]'));
+  assert.match(a.w.document.querySelector('.reader-chapter').textContent,/Ayah 1:4/);
+  assert.equal(a.tones,0);
+  assert.equal(a.w.document.querySelector('.word.mistake'),null);
+  assert.equal(a.w.localStorage.getItem('hifdh-mistakes'),null);
+  a.say('بسم الله',false);
+  assert.match(a.w.document.querySelector('.reader-chapter').textContent,/Ayah 1:1/);
+  assert.equal(a.w.document.querySelector('[data-study-word="1:2:0"]'),null);
+  a.say(text,true);
+  assert.match(a.w.document.querySelector('.reader-chapter').textContent,/Ayah 1:4/);
+  assert.equal(a.tones,0);
+ } finally{a.close();}
+});
+
+test("a matching interim ayah turns the displayed page before finalization without committing progress",()=>{
+ const a=app();
+ try {
+  const select=a.w.document.getElementById('surah-picker');select.value='2';select.dispatchEvent(new a.w.Event('change'));
+  a.tab('Practice');a.click('reader-settings');a.w.document.getElementById('jump-ayah').value='5';a.click('jump');a.click('listen');
+  const text=practiceText(2,4,chapter(2).verses[4])+' إن الذين كفروا';
+  a.say(text,false);
+  assert.equal(a.w.document.querySelector('.mushaf').dataset.page,'3');
+  assert.ok(a.w.document.querySelector('[data-study-word="2:5:0"]'));
+  assert.equal(a.tones,0);
+  a.click('listen');
+  assert.equal(a.w.document.querySelector('.mushaf').dataset.page,'2');
+ } finally{a.close();}
 });

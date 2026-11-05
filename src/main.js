@@ -11,6 +11,7 @@ import {
   compareRecitation,
   normalize,
   followVerses,
+  previewVerses,
   spokenTokens,
 } from "./recitation.js";
 import { dateKey } from "./activity.js";
@@ -55,6 +56,7 @@ let state = {
   mode: "Read & reflect",
   listening: false,
   statuses: [],
+  livePreview: null,
   feedback: "Take a breath. Begin when you’re ready.",
   saved,
   sound: true,
@@ -164,7 +166,7 @@ function render() {
         "",
       )}</nav><div class="sidebar-bottom"><div class="small-flower">✧</div><p>Little by little,<br>the heart remembers.</p><span>YOUR JOURNEY, YOUR PACE</span></div><div class="profile"><div class="avatar">Y</div><div>Your journey<small>Growing every day</small></div><span>↗</span></div></aside>
 <main class="${reading ? "reader-view" : ""}"><header><div class="breadcrumb">My workspace <span>/</span> ${state.tab === "Practice" ? "Memorization" : escape(state.tab)}</div><div class="header-right"><span class="today">☀ &nbsp; A good day to begin</span><div class="avatar mini">Y</div></div></header><section class="content ${reading ? "reader-content" : ""}"><h1 class="sr-only">${reading ? escape(current().englishName) + " Quran reader" : escape(state.tab)}</h1>${reading ? '<div class="reader-intro"><span class="kicker">YOUR QURAN, CLOSE TO HEART</span><h1>Read. Remember. Return.</h1><button class="text-button" id="resume-bookmark">' + (state.bookmark ? "Resume bookmark →" : "Choose a surah →") + "</button></div>" : ""}<div class="eyebrow">السَّلَامُ عَلَيْكُمْ <span>PEACE BE UPON YOU</span></div><div class="page-title"><div><h2 class="workspace-title">A little closer, every ayah.</h2><p>Make room for the Quran. Let each verse settle in your heart.</p></div><span class="date-pill">✧ &nbsp; Your daily connection</span></div>
-${reading ? readerScreen(state, surahs, readerWords, recitationFeedback) : state.tab === "Challenge" ? challengeScreen(state, surahs) : state.tab === "Library" ? library() : state.tab === "Mistakes" ? mistakesScreen(state) : state.tab === "Search" ? searchScreen(state) : progressScreen(state, surahs)}
+${reading ? readerScreen(state.livePreview ? { ...state, verse: state.livePreview.verse } : state, surahs, readerWords, recitationFeedback) : state.tab === "Challenge" ? challengeScreen(state, surahs) : state.tab === "Library" ? library() : state.tab === "Mistakes" ? mistakesScreen(state) : state.tab === "Search" ? searchScreen(state) : progressScreen(state, surahs)}
 <footer><span>◈ &nbsp; Quran text: <a href="https://tanzil.net" target="_blank" rel="noopener">Tanzil Project</a> · Uthmani</span><span>Consistency over perfection.</span></footer></section></main>`;
   bind();
   const mushaf = document.querySelector(".mushaf");
@@ -177,6 +179,7 @@ function library() {
   return `<div class="section-heading"><h2>Find your next surah</h2><span>114 chapters · one journey</span></div><div class="library-grid">${surahs.map((s) => `<button class="library-card" data-surah="${s.number}"><span class="chapter-number">${s.number}</span><h2>${escape(s.englishName)}</h2><p lang="ar">${escape(s.name)}</p><small>${s.numberOfAyahs} AYAHS &nbsp; →</small></button>`).join("")}</div><p class="library-note">All 114 surahs are bundled. Quran text: Tanzil Project · Uthmani, Hafs numbering.</p>`;
 }
 function stop() {
+  state.livePreview = null;
   const previous = recognition;
   recognition = null;
   state.finding = false;
@@ -193,6 +196,7 @@ function stop() {
   endActivity();
 }
 function resetAttempt() {
+  state.livePreview = null;
   state.statuses = [];
   state.recitationOffset =
     state.challenge?.style === "finish" &&
@@ -243,7 +247,7 @@ function renderWords() {
   return activeText()
     .split(/\s+/)
     .map((word, i) => {
-      const status = state.statuses[i] || "pending";
+      const status = state.livePreview?.results[state.verse]?.[i] || state.statuses[i] || "pending";
       const masked =
         state.mode === "Recall & recite" &&
         !state.revealAll &&
@@ -325,8 +329,10 @@ function scrollToSelected() {
   const panel = document.querySelector(".mushaf"),
     verse = document.querySelector(".current-verse");
   if (!panel || !verse) return;
+  const words = [...verse.querySelectorAll(".word.correct")];
+  const target = words.at(-1) || verse.querySelector(".word") || verse;
   const p = panel.getBoundingClientRect(),
-    v = verse.getBoundingClientRect();
+    v = target.getBoundingClientRect();
   if (v.bottom > p.bottom) panel.scrollTop += v.bottom - p.bottom + 15;
   else if (v.top < p.top) panel.scrollTop -= p.top - v.top + 15;
 }
@@ -635,6 +641,17 @@ function startReciting(findAnywhere = false) {
       saveAttempt(finalRemaining, confirmed);
       lastFinal = finalRemaining;
     }
+    const previousPreviewVerse = state.livePreview?.verse ?? state.verse;
+    const preview = previewVerses(passage, state.verse, allWords.slice(consumedWords).join(" "));
+    for (const [verse, statuses] of Object.entries(preview.results)) {
+      const offset = Number(verse) === anchorVerse ? anchorOffset : 0;
+      const rebased = withWordOffset({ statuses, details: [] }, offset).statuses;
+      const confirmedStatuses = state.readerResults[`${state.surah}:${verse}`] || [];
+      preview.results[verse] = rebased.map((status, i) =>
+        ["mistake", "uncertain"].includes(confirmedStatuses[i]) ? confirmedStatuses[i]
+          : status === "correct" ? "correct" : confirmedStatuses[i] || "pending");
+    }
+    state.livePreview = preview;
     state.feedback =
       state.uncertaintyActive && state.feedbackMode !== "experimental"
         ? "Some words were not recognized clearly. Keep reciting; no recitation error has been confirmed."
@@ -646,7 +663,7 @@ function startReciting(findAnywhere = false) {
               ? "Continue reciting. Unconfirmed recognition differences can be checked in Review."
               : "Listening… begin the selected ayah.";
     render();
-    if (progression.completed.length) scrollToSelected();
+    if (progression.completed.length || preview.verse !== previousPreviewVerse || allWords.length > consumedWords) scrollToSelected();
   };
 
   session.onerror = (e) => {
@@ -883,7 +900,7 @@ function recitationFeedback() {
 }
 function readerWords(verse, index, number = state.surah) {
   if (number === state.surah && index === state.verse) return renderWords();
-  const statuses = state.readerResults[`${number}:${index}`] || [];
+  const statuses = (number === state.surah ? state.livePreview?.results[index] : null) || state.readerResults[`${number}:${index}`] || [];
   return practiceText(number, index, verse)
     .split(/\s+/)
     .map((word, i) => {
@@ -1124,9 +1141,10 @@ function bindScreens() {
       changeVerse(n - 1 - state.verse);
   });
   on("bookmark", () => {
-    state.bookmark = { surah: state.surah, verse: state.verse };
+    const verse = state.livePreview?.verse ?? state.verse;
+    state.bookmark = { surah: state.surah, verse };
     writeLocal("hifdh-bookmark", state.bookmark);
-    state.feedback = `Bookmarked ayah ${state.surah}:${state.verse + 1}.`;
+    state.feedback = `Bookmarked ayah ${state.surah}:${verse + 1}.`;
     render();
   });
   on("resume-bookmark", () => {
@@ -1271,7 +1289,7 @@ function openPage(number) {
   );
 }
 function turnPage(direction) {
-  const number = pageForVerse(state.surah, state.verse) + direction;
+  const number = pageForVerse(state.surah, state.livePreview?.verse ?? state.verse) + direction;
   if (number >= 1 && number <= PAGE_COUNT) openPage(number);
 }
 function fitQuranPage() {
