@@ -15,7 +15,7 @@ before(async () => {
 });
 function app(
   fetchImpl = () => Promise.reject(Error("offline")),
-  storage = { "hifdh-feedback-mode": '"experimental"' },
+  storage = { "hifdh-feedback-mode-v2": '"experimental"' },
 ) {
   const dom = new JSDOM('<div id="app"></div>', {
     url: "https://example.test/Hifdh/",
@@ -314,7 +314,7 @@ test("sound preview and confirmed mismatches show the prominent red alert state"
   assert.ok(a.w.document.querySelector(".reader-shell.has-mistake"));
   assert.match(
     a.w.document.querySelector(".alert-label").textContent,
-    /CHECK RECITATION/,
+    /CHECK TRANSCRIPT/,
   );
   a.close();
 });
@@ -546,7 +546,7 @@ test("a suspended audio context is resumed rather than silently dropping the ale
 });
 
 test("safe feedback can be selected: browser differences never become automatic red mistakes or sounds", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.tab("Practice");
   a.click("listen");
@@ -566,7 +566,7 @@ test("safe feedback can be selected: browser differences never become automatic 
   a.close();
 });
 test("only user-confirmed mistakes become red in safe mode and correct-recitation reports can be dismissed", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.click("listen");
   a.say("بسم نور الرحمن الرحيم الحمد لله رب العالمين");
@@ -584,7 +584,7 @@ test("only user-confirmed mistakes become red in safe mode and correct-recitatio
 
 import standardText from "../src/data/simple-clean.json" with { type: "json" };
 test("Yunus session boundaries remain aligned across punctuation-only recognition tokens", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.w.document.querySelector('[data-tab="Library"]').click();
   a.w.document.querySelector('[data-surah="10"]').click();
@@ -648,7 +648,7 @@ test("last page shows all its surahs and selecting another surah retains the pag
   a.close();
 });
 test("recitation automatically displays the next standard page without restarting recognition", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.click("page-next");
   a.w.document.querySelector('[data-chapter="2"][data-verse="4"]').click();
@@ -736,7 +736,7 @@ test("ordinary taps do not redraw the reader or remove focused controls", async 
 });
 
 test("Start anywhere locates a mid-ayah phrase on its page without marking the preceding words missed", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.click("locate-start");
   a.say("وبشر الذين آمنوا أن لهم قدم صدق");
@@ -759,7 +759,7 @@ test("Start anywhere locates a mid-ayah phrase on its page without marking the p
   a.close();
 });
 test("ambiguous recitation asks for context and permits choosing a candidate", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.click("locate-start");
   a.say("الحمد لله رب العالمين");
@@ -775,7 +775,7 @@ test("ambiguous recitation asks for context and permits choosing a candidate", a
   a.close();
 });
 test("full-ayah exercise shows a cue and hides the following ayah until recited", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.click("open-challenge");
   a.w.document.getElementById("quiz-ayah").value = "2";
@@ -807,7 +807,7 @@ test("full-ayah exercise shows a cue and hides the following ayah until recited"
   a.close();
 });
 test("finish-ayah exercise compares only the hidden remainder and can return to the full Quran page", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.click("open-challenge");
   const style = a.w.document.getElementById("quiz-style");
@@ -842,7 +842,7 @@ test("finish-ayah exercise compares only the hidden remainder and can return to 
 });
 
 test("Start anywhere finds a short unique ayah after Bismillah and continues on its page", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   await tick();
   a.click("locate-start");
   a.say("بسم الله الرحمن الرحيم قل هو الله احد");
@@ -877,7 +877,7 @@ test("main reader exposes checking directly and pause cancels microphone reconne
 });
 
 test("microphone reconnect preserves finalized words across recognition sessions", async () => {
-  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
+  const a = app(undefined, { "hifdh-feedback-mode-v2": '"safe"' });
   try {
     a.click("check-recitation");
     a.say("بسم الله");
@@ -907,8 +907,8 @@ test("denied microphone permission does not enter an automatic reconnect loop", 
 });
 
 
-test("default checking marks final mismatches red and sounds while interim guesses stay quiet", async () => {
-  const a = app(undefined, {});
+test("opt-in experimental alerts mark final mismatches red while interim guesses stay quiet", async () => {
+  const a = app(undefined, {"hifdh-feedback-mode-v2": '"experimental"'});
   try {
     a.click("check-recitation");
     a.say("بسم نور", false);
@@ -987,4 +987,20 @@ test("a matching interim ayah turns the displayed page before finalization witho
   a.click('listen');
   assert.equal(a.w.document.querySelector('.mushaf').dataset.page,'2');
  } finally{a.close();}
+});
+
+
+test("legacy automatic alerts migrate to unconfirmed feedback for misrecognized Yunus words",()=>{
+ const a=app(undefined,{'hifdh-feedback-mode':'"experimental"'});
+ try {
+  const select=a.w.document.getElementById('surah-picker');select.value='10';select.dispatchEvent(new a.w.Event('change'));
+  a.tab('Practice');a.click('reader-settings');a.w.document.getElementById('jump-ayah').value='2';a.click('jump');a.click('listen');
+  a.say('أكان للناس عجيبا أن أوحينا إلى رجل منهم',true);
+  assert.equal(a.w.document.querySelector('.word.mistake'),null);
+  assert.ok(a.w.document.querySelector('.word.uncertain'));
+  assert.equal(a.tones,0);
+  assert.ok(a.w.document.getElementById('review-recognition'));
+  a.click('review-recognition');
+  assert.match(a.w.document.querySelector('.review-status').textContent,/Unconfirmed/);
+ }finally{a.close();}
 });

@@ -4816,3 +4816,4 @@ body[data-theme].focus-reading .check-recitation { width:44px; min-width:44px; h
 .recitation-mode-choice { display:flex; flex-direction:column; align-items:flex-start; gap:8px; width:100%; min-height:80px; margin-top:12px; padding:16px; text-align:left; border:1px solid var(--accent); border-radius:12px; color:var(--text); background:var(--soft); }
 .recitation-mode-choice strong { font-size:16px; }
 .recitation-mode-choice span { font-size:12px; line-height:1.5; }
+.review-recognition { margin-left:6px; padding:4px 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--text); font:inherit; text-decoration:underline; }

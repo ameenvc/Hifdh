@@ -296,6 +296,14 @@ try {
   assert.ok((await page.locator('[data-study-word="1:2:0"]').count()) > 0);
   assert.match(await page.locator(".reader-chapter").textContent(), /Ayah 1:4/);
   assert.equal(await page.locator(".word.mistake").count(), 0);
+  await page.evaluate(() =>
+    window.__hifdhSpeech.onresult({
+      results: [Object.assign([{ transcript: "بسم نور" }], { isFinal: true })],
+    }),
+  );
+  assert.equal(await page.locator(".word.mistake").count(), 0);
+  assert.ok((await page.locator(".word.uncertain").count()) > 0);
+  assert.equal(await page.locator("#review-recognition").isVisible(), true);
   await page.locator("#check-recitation").click();
   assert.deepEqual(errors, []);
   console.log(

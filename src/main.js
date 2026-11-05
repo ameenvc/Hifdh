@@ -85,7 +85,7 @@ let state = {
   controlsOpen: false,
   soundBlocked: false,
   feedbackMode:
-    readLocal("hifdh-feedback-mode", "experimental") === "experimental"
+    readLocal("hifdh-feedback-mode-v2", "safe") === "experimental"
       ? "experimental"
       : "safe",
   uncertaintyActive: false,
@@ -896,7 +896,7 @@ function saveAttempt(transcript, result) {
   writeLocal("hifdh-mistakes", state.mistakes);
 }
 function recitationFeedback() {
-  return `<div class="recitation-status ${state.alertActive ? "has-error" : state.uncertaintyActive ? "has-uncertainty" : ""} ${state.alertActive ? "mistake-alert-active" : ""}" role="status"><span>${state.alertActive ? "⚠" : state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${state.alertActive ? '<strong class="alert-label">CHECK RECITATION</strong>' : ""}${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What your browser heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
+  return `<div class="recitation-status ${state.alertActive ? "has-error" : state.uncertaintyActive ? "has-uncertainty" : ""} ${state.alertActive ? "mistake-alert-active" : ""}" role="status"><span>${state.alertActive ? "⚠" : state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${state.alertActive ? '<strong class="alert-label">CHECK TRANSCRIPT</strong>' : ""}${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What your browser heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
 }
 function readerWords(verse, index, number = state.surah) {
   if (number === state.surah && index === state.verse) return renderWords();
@@ -1035,7 +1035,7 @@ function bindScreens() {
     stop();
     state.feedbackMode =
       state.feedbackMode === "safe" ? "experimental" : "safe";
-    writeLocal("hifdh-feedback-mode", state.feedbackMode);
+    writeLocal("hifdh-feedback-mode-v2", state.feedbackMode);
     state.readerResults = {};
     resetAttempt();
     state.feedback =
