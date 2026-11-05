@@ -1246,36 +1246,15 @@ function turnPage(direction) {
 }
 function fitQuranPage() {
   const panel = document.querySelector(".paged-mushaf");
-  if (!panel || panel.clientHeight < 1) return;
-  if (panel.classList.contains("challenge-active")) {
-    panel.style.setProperty("--quran-size", state.fontSize + "px");
-    return;
-  }
-  const requested = state.fontSize;
-  const fits = (size) => {
-    panel.style.setProperty("--quran-size", size + "px");
-    return panel.scrollHeight <= panel.clientHeight + 1;
-  };
-  let low = 11,
-    high = requested,
-    best = 11;
-  while (high - low > 0.3) {
-    const mid = (low + high) / 2;
-    if (fits(mid)) {
-      best = mid;
-      low = mid;
-    } else high = mid;
-  }
-  panel.style.setProperty(
-    "--quran-size",
-    (fits(requested) ? requested : best) + "px",
-  );
+  if (!panel) return;
+  // One user-selected size for every page; page density must not change it.
+  panel.style.setProperty("--quran-size", state.fontSize + "px");
   panel.classList.toggle(
     "page-overflow",
     panel.scrollHeight > panel.clientHeight + 1,
   );
-  panel.scrollTop = 0;
 }
+
 window.addEventListener("resize", fitQuranPage);
 if (document.fonts?.ready) document.fonts.ready.then(fitQuranPage);
 document.addEventListener("keydown", (event) => {

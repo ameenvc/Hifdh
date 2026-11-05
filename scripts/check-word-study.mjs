@@ -119,9 +119,23 @@ try {
   assert.equal(await page.locator("#study-grammar-quick").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#study-repeated-quick").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator(".repeated-word").count(), 0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator("#reader-settings").click();
+  await page.locator("#font-size").evaluate(e => { e.value = "30"; e.dispatchEvent(new Event("input", { bubbles: true })); });
+  await page.locator("#reader-settings").click();
+  for (const surah of ["1", "2", "19", "114"]) {
+    await page.locator("#surah-picker").selectOption(surah);
+    assert.equal(await page.locator(".mushaf-text").first().evaluate(e => getComputedStyle(e).fontSize), "30px");
+  }
+  await page.locator("#surah-picker").selectOption("2");
+  await page.locator("#page-next").click();
+  assert.equal(await page.locator(".mushaf-text").first().evaluate(e => getComputedStyle(e).fontSize), "30px");
+  assert.equal(await page.locator(".paged-mushaf").evaluate(e => getComputedStyle(e).overflowY), "auto");
+  await page.setViewportSize({ width: 768, height: 1024 });
+  assert.equal(await page.locator(".mushaf-text").first().evaluate(e => getComputedStyle(e).fontSize), "30px");
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: phone tap, desktop hover, corpus verb details, theme, word colours, unchanged Quran text and hidden-word protection.",
+    "PASS: phone tap, desktop hover, corpus verb details, theme, word colours, unchanged Quran text, hidden-word protection and consistent text size across pages/resizing.",
   );
 } finally {
   await browser?.close();

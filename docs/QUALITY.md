@@ -93,3 +93,7 @@ Grammar and Repeated words now have directly visible buttons below Read/Memorize
 ## Default study tools — 5 November 2026
 
 Grammar and repeated-word colours now start enabled, including a one-time upgrade from the old opt-in preferences. Subsequent choices to disable either tool persist under the new versioned preference. The study browser regression checks initial enabled controls, word details and colours, then disables both and verifies the saved disabled state after reload.
+
+## Consistent Quran text size — 5 November 2026
+
+Removed per-page font shrinking. All Quran pages now use the selected text size, including after screen resizing; dense pages scroll inside the current page instead of changing font size. Page navigation and the fixed controls remain available. Production browser regression checks a selected 30px size across Fatiha, Baqarah, Maryam, An-Nas, a subsequent page, and a phone-to-tablet resize, plus scrolling access on a dense page. This supersedes earlier automatic-fit findings and expectations of no local vertical scrolling.
