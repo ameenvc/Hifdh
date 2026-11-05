@@ -39,7 +39,7 @@ export function readerScreen(state, surahs, renderWordList, feedback) {
              ? splitOpening(segment.surah, chapter(segment.surah).verses[0])
              : null;
            const marker = (index) =>
-             `<button class="verse-marker" data-verse="${index}" data-chapter="${segment.surah}" aria-label="Select ayah ${segment.surah}:${index + 1}" ${state.surah === segment.surah && state.verse === index ? 'aria-current="true"' : ""}>${(index + 1).toLocaleString("ar")}</button>`;
+             `<button class="verse-marker" data-verse="${index}" data-chapter="${segment.surah}" aria-label="Ayah ${segment.surah}:${index + 1} · show full meaning" aria-haspopup="dialog" ${state.surah === segment.surah && state.verse === index ? 'aria-current="true"' : ""}>${(index + 1).toLocaleString("ar")}</button>`;
            return `<section class="page-surah" data-page-surah="${segment.surah}">${starts ? `<div class="chapter-ornament"><span>❧</span><h2 lang="ar">${escape(segment.metadata.name)}</h2><span>❧</span></div>` : ""}${opening?.bismillah ? `<div class="basmala ${segment.surah === 1 ? "mushaf-verse" : ""} ${state.surah === 1 && state.verse === 0 ? "current-verse" : ""}" lang="ar" dir="rtl">${segment.surah === 1 ? renderWordList(segment.verses[0].text, 0, 1) : escape(opening.bismillah)}${segment.surah === 1 ? marker(0) : ""}</div>` : ""}<div class="mushaf-text" lang="ar" dir="rtl">${segment.verses.map((row) => (segment.surah === 1 && row.index === 0 ? "" : `<span class="mushaf-verse ${state.surah === segment.surah && row.index === state.verse ? "current-verse" : ""}">${renderWordList(row.text, row.index, segment.surah)} ${marker(row.index)}</span> `)).join("")}</div></section>`;
          })
          .join("")

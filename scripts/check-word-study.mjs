@@ -98,7 +98,45 @@ try {
       bounds.y + bounds.height <= 844,
   );
 
+  assert.equal(
+    await page.locator(".study-attached").getAttribute("open"),
+    null,
+  );
   await page.locator("#word-study-panel>button").click();
+  await page.locator('[data-study-word="1:2:0"]').tap();
+  assert.equal(
+    await page.locator("#word-study-panel > .study-segment").count(),
+    1,
+  );
+  assert.equal(
+    await page.locator(".study-attached .study-segment").isVisible(),
+    false,
+  );
+  await page.locator(".study-attached summary").click();
+  assert.equal(
+    await page.locator(".study-attached .study-segment").isVisible(),
+    true,
+  );
+  await page.locator("#word-study-panel>button").click();
+  await page.locator('.verse-marker[data-chapter="1"][data-verse="5"]').tap();
+  await page.waitForFunction(
+    () =>
+      document.querySelector(".verse-meaning-text")?.textContent ===
+      "Show us the straight path",
+  );
+  assert.ok(
+    (await page.locator(".verse-meaning-credit").textContent()).includes(
+      "Pickthall",
+    ),
+  );
+  await page.keyboard.press("ArrowRight");
+  assert.equal(await page.locator(".mushaf").getAttribute("data-page"), "1");
+  await page.keyboard.press("Escape");
+  assert.equal(await page.locator("#verse-meaning-panel").count(), 0);
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.dataset.verse),
+    "5",
+  );
   assert.equal(
     await page.locator("#study-repeated-quick").getAttribute("aria-pressed"),
     "true",
@@ -139,6 +177,9 @@ try {
   );
   await selectMode("Recall & recite");
   assert.equal(await page.locator(".masked-word[data-study-word]").count(), 0);
+  await page.locator('.verse-marker[data-chapter="1"][data-verse="0"]').tap();
+  assert.equal(await page.locator(".verse-meaning-arabic").count(), 0);
+  await page.keyboard.press("Escape");
   await selectMode("Read & reflect");
   await page.locator("#reader-settings").click();
   await page.locator("#study-grammar-quick").click();

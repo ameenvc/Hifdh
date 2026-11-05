@@ -1,3 +1,4 @@
+import { showVerseMeaning } from "./verse-meaning.js";
 import { bindWordStudy, toggleStudy } from "./word-study.js";
 import "@fontsource/amiri/arabic-400.css";
 import "@fontsource/dm-sans/latin-400.css";
@@ -896,8 +897,13 @@ function bindScreens() {
       (b.onclick = () => {
         const number = +b.dataset.chapter,
           index = +b.dataset.verse;
-        if (number === state.surah) changeVerse(index - state.verse);
-        else loadSurah(number, index, state.tab);
+        if (number === state.surah) {
+          changeVerse(index - state.verse);
+          showVerseMeaning(number, index, state.mode !== "Recall & recite");
+        } else {
+          loadSurah(number, index, state.tab);
+          showVerseMeaning(number, index, state.mode !== "Recall & recite");
+        }
       }),
   );
   on("study-grammar-quick", () => { toggleStudy("grammar"); render(); });
@@ -1260,6 +1266,7 @@ if (document.fonts?.ready) document.fonts.ready.then(fitQuranPage);
 document.addEventListener("keydown", (event) => {
   if (
     !document.querySelector(".paged-mushaf") ||
+    document.querySelector("#verse-meaning-panel") ||
     state.controlsOpen ||
     event.target?.matches?.("input,select,textarea") ||
     event.altKey ||

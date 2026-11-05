@@ -1,2 +1,3 @@
 public/data/grammar/source.txt -text
 public/data/meanings/english.js -text
+public/data/verse-meanings/english-pickthall.json -text

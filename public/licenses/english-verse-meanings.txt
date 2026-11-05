@@ -1,0 +1,5 @@
+English translation of Quran meanings: Marmaduke Pickthall (1930).
+Public domain translation as identified by the source repository.
+Source: https://github.com/risan/quran-json/tree/6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123
+File: data/extra/english_pickthall.json, retained verbatim.
+Translations express an interpretation of meaning; this is not tafsir.

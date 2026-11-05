@@ -112,3 +112,46 @@ test("English meaning source is intact and maps to corpus word positions", async
   assert.ok(covered > 77000);
   assert.equal(absent, 0);
 });
+
+test("full English verse translations cover all Hafs ayahs and retain the source checksum", () => {
+  const source = readFileSync(
+    new URL(
+      "../public/data/verse-meanings/english-pickthall.json",
+      import.meta.url,
+    ),
+  );
+  const translation = JSON.parse(source);
+  const provenance = JSON.parse(
+    readFileSync(
+      new URL("../public/data/verse-meanings/provenance.json", import.meta.url),
+    ),
+  );
+  assert.equal(
+    createHash("sha256").update(source).digest("hex"),
+    provenance.sha256,
+  );
+  let total = 0;
+  for (let s = 1; s <= 114; s++) {
+    assert.equal(translation[s].length, chapter(s).verses.length);
+    translation[s].forEach((row, i) => {
+      assert.equal(row.chapter, s);
+      assert.equal(row.verse, i + 1);
+      assert.ok(row.text.trim());
+      total++;
+    });
+  }
+  assert.equal(total, 6236);
+  assert.equal(translation[1][5].text, "Show us the straight path");
+  assert.equal(translation[2][0].text, "Alif. Lam. Mim");
+});
+
+test("articles and attached pronouns remain available without crowding the main grammar view", async () => {
+  const { partitionSegments } = await import("../src/word-study.js");
+  const { primary, attached } = partitionSegments(read(1)[2][0]);
+  assert.equal(primary.length, 1);
+  assert.equal(primary[0][1], "ADJ");
+  assert.equal(attached[0][1], "DET");
+  const verb = partitionSegments(read(1)[5][0]);
+  assert.equal(verb.primary[0][1], "V");
+  assert.equal(verb.attached[0][1], "PRON");
+});

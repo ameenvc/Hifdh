@@ -48,6 +48,11 @@ export function describeSegments(segments) {
       .join(" · "),
   }));
 }
+export function partitionSegments(segments) {
+  const main = segments.filter((s) => s[2].includes("STEM"));
+  const primary = main.length ? main : segments.slice(0, 1);
+  return { primary, attached: segments.filter((s) => !primary.includes(s)) };
+}
 const options = { grammar: true, repeated: true };
 try {
   Object.assign(
@@ -133,11 +138,11 @@ function showWord(element, segments, focus = false) {
   close.setAttribute("aria-label", "Close word details");
   close.onclick = () => closeWordStudy(true);
   panel.append(close);
-  const add = (text, cls = "") => {
+  const add = (text, cls = "", target = panel) => {
     const p = document.createElement("p");
     p.textContent = text;
     if (cls) p.className = cls;
-    panel.append(p);
+    target.append(p);
   };
   add(element.textContent, "study-arabic");
   const [s, v, w] = element.dataset.studyWord.split(":");
@@ -164,15 +169,34 @@ function showWord(element, segments, focus = false) {
       add(
         "No matching corpus annotation for this word. No grammar has been inferred.",
       );
-    else
-      for (const segment of describeSegments(segments)) {
-        add(`${segment.text} — ${segment.type}`, "study-segment");
-        if (segment.root) add(`Root · الجذر: ${segment.root}`);
+    else {
+      const { primary, attached } = partitionSegments(segments);
+      const renderSegment = (segment, target = panel) => {
+        add(`${segment.text} — ${segment.type}`, "study-segment", target);
+        if (segment.root) add(`Root · الجذر: ${segment.root}`, "", target);
         if (segment.lemma)
-          add(`Corpus lemma / base form · الصيغة المعجمية: ${segment.lemma}`);
-        if (segment.details.length) add(segment.details.join(" · "));
-        add(segment.features, "study-features");
+          add(
+            `Corpus lemma / base form · الصيغة المعجمية: ${segment.lemma}`,
+            "",
+            target,
+          );
+        if (segment.details.length)
+          add(segment.details.join(" · "), "", target);
+        add(segment.features, "study-features", target);
+      };
+      describeSegments(primary).forEach((segment) => renderSegment(segment));
+      if (attached.length) {
+        const details = document.createElement("details");
+        details.className = "study-attached";
+        const summary = document.createElement("summary");
+        summary.textContent = `Articles & attached parts (${attached.length})`;
+        details.append(summary);
+        describeSegments(attached).forEach((segment) =>
+          renderSegment(segment, details),
+        );
+        panel.append(details);
       }
+    }
   }
   add(
     `Appears ${wordFrequency(element.textContent)} times in the Quran (same normalized word spelling; opening unnumbered Bismillah excluded).`,
