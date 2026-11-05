@@ -92,6 +92,35 @@ export function closeWordStudy(restoreFocus = false) {
   document.getElementById("word-study-panel")?.remove();
   if (restoreFocus && activeWord?.isConnected) activeWord.focus();
 }
+let meaningSource;
+async function meaningFor(s, v, w) {
+  const data = await load(String(s));
+  if (!data?.[v]?.[w]) return null;
+  meaningSource ||= import(
+    /* @vite-ignore */ `${import.meta.env.BASE_URL}data/meanings/english.js`
+  )
+    .then((m) => new Map(m.default))
+    .catch((e) => {
+      meaningSource = null;
+      throw e;
+    });
+  const map = await meaningSource;
+  const position = practiceText(
+    Number(s),
+    Number(v),
+    chapter(Number(s)).verses[v],
+  )
+    .split(/\s+/)
+    .slice(0, Number(w) + 1)
+    .filter(studyKey).length;
+  const raw = map.get(`${s}:${Number(v) + 1}:${position}:1`);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
 function showWord(element, segments, focus = false) {
   closeWordStudy();
   activeWord = element;
@@ -111,8 +140,25 @@ function showWord(element, segments, focus = false) {
     panel.append(p);
   };
   add(element.textContent, "study-arabic");
-  const [s, v] = element.dataset.studyWord.split(":");
+  const [s, v, w] = element.dataset.studyWord.split(":");
   add(`Surah ${s} · Ayah ${Number(v) + 1}`);
+  const meaning = document.createElement("p");
+  meaning.className = "study-meaning";
+  meaning.setAttribute("role", "status");
+  meaning.textContent = "English meaning: loading…";
+  panel.append(meaning);
+  meaningFor(s, v, w)
+    .then((text) => {
+      if (panel.isConnected)
+        meaning.textContent = text
+          ? `English meaning: ${text}`
+          : "English meaning unavailable for this word.";
+    })
+    .catch(() => {
+      if (panel.isConnected)
+        meaning.textContent =
+          "Meaning could not load. Check your connection, then tap the word again.";
+    });
   if (options.grammar) {
     if (!segments)
       add(
@@ -140,19 +186,27 @@ function showWord(element, segments, focus = false) {
   link.rel = "noopener";
   link.textContent = "Source: Quranic Arabic Corpus · view ayah";
   panel.append(link);
+  const credit = document.createElement("a");
+  credit.href = `${import.meta.env.BASE_URL}licenses/english-word-meanings.txt`;
+  credit.target = "_blank";
+  credit.rel = "noopener";
+  credit.textContent = "English meanings: Hablullah · source and terms";
+  credit.className = "meaning-credit";
+  panel.append(credit);
   document.body.append(panel);
   // Place the card above or below its word so hover never blocks the tap target.
   const rect = element.getBoundingClientRect();
   const reading = element.closest(".mushaf").getBoundingClientRect();
-  const top = Math.max(8, reading.top), bottom = Math.min(innerHeight - 8, reading.bottom);
-  const below = bottom - rect.bottom - 8, above = rect.top - top - 8;
+  const top = Math.max(8, reading.top),
+    bottom = Math.min(innerHeight - 8, reading.bottom);
+  const below = bottom - rect.bottom - 8,
+    above = rect.top - top - 8;
   const space = Math.max(below, above);
   panel.style.maxHeight = `${Math.min(520, Math.max(48, space - 8))}px`;
   panel.style.bottom = "auto";
   const height = panel.getBoundingClientRect().height;
   panel.style.top = `${Math.max(top, Math.min(bottom - height, below >= above ? rect.bottom + 8 : rect.top - height - 8))}px`;
   if (focus) close.focus({ preventScroll: true });
-
 }
 async function load(s) {
   if (!cache.has(s))
@@ -186,7 +240,7 @@ export async function bindWordStudy() {
     if (!e.isConnected) continue;
     if (options.repeated && wordFrequency(e.textContent) > 1)
       e.classList.add("repeated-word", `repeat-${repeatColour(e.textContent)}`);
-    if (!options.grammar && !options.repeated) continue;
+
     const [s, v, w] = e.dataset.studyWord.split(":");
     const segments = datasets[s]?.[v]?.[w];
     e.setAttribute("tabindex", "0");

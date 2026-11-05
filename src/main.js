@@ -76,7 +76,7 @@ let state = {
   attemptId: null,
   pendingDelete: false,
   loading: false,
-  focusMode: false,
+  focusMode: true,
   theme: readLocal("hifdh-theme", "white") === "black" ? "black" : "white",
   recitationPage: false,
   controlsOpen: false,

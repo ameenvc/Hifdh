@@ -1,0 +1,9 @@
+{
+  "source": "Hablullah data-quran English word-by-word translations, mirrored by Abbas1997/QuranicMorphology",
+  "mirror": "https://github.com/Abbas1997/QuranicMorphology",
+  "commit": "b7d2665b0a568a90f8d4703ec36099fcc43fdc29",
+  "path": "Components/wordtranslations.js",
+  "sha256": "3846c06b7cc10b5ad57a1da2c53d1bb920da130806c65926c241502e9286da84",
+  "license": "CC BY-NC-ND 4.0 as stated in mirror README",
+  "usage": "Source module retained verbatim; loaded only when a word card is opened. Meanings displayed only for corpus-aligned word positions."
+}

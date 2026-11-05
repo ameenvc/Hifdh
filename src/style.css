@@ -4778,3 +4778,25 @@ body[data-theme] .mushaf .repeated-word.repeat-3:not(.mistake) { color:var(--rep
 .study-toolbar svg { width:15px; height:15px; }
 .study-toolbar > span { color:var(--muted); font-size:11px; }
 @media(max-width:520px) { .study-toolbar { gap:6px; padding:5px 12px; } .study-toolbar button { font-size:11px; padding-inline:8px; } .study-toolbar > span { display:none; } }
+/* Default full-screen reader: one toolbar and a compact page/microphone dock. */
+.focus-reading .reader-shell { position:relative; max-width:none; border:0; border-radius:0; }
+.focus-reading .reader-content { padding:0; }
+.focus-reading .reader-mode, .focus-reading .study-toolbar { display:none !important; }
+.focus-reading:has(.reader-settings) .reader-mode { display:grid !important; }
+.focus-reading:has(.reader-settings) .study-toolbar { display:flex !important; }
+.focus-reading .reader-controls { min-height:64px; }
+.focus-reading .check-recitation > span { display:none; }
+body[data-theme].focus-reading .check-recitation { width:44px; min-width:44px; height:44px; padding:0; border-radius:50%; }
+.focus-reading .page-navigation:not([hidden]) { position:absolute; bottom:calc(12px + env(safe-area-inset-bottom,0px)); left:80px; right:80px; padding:0; border:0; background:transparent; gap:5px; z-index:2; }
+.focus-reading .page-navigation > button { width:32px; height:40px; min-height:40px; padding:4px; }
+.focus-reading .page-navigation > button span { display:none; }
+.focus-reading .page-navigation .page-counter { font-size:10px; }
+.quran-attribution { flex-basis:100%; font-size:12px; line-height:1.6; }
+.quran-attribution a { color:var(--accent); }
+#word-study-panel .study-meaning { font-size:15px; font-weight:600; padding:8px 0; border-block:1px solid var(--line); }
+#word-study-panel .meaning-credit { display:block; font-size:11px; margin-top:8px; }
+@media(max-width:399px) { .focus-reading .page-navigation:not([hidden]) { left:70px; right:70px; } .focus-reading .page-navigation .page-counter { font-size:9px; } }
+/* Let the central pager receive taps between the two dock buttons. */
+.focus-reading .reader-controls, .focus-reading .controls-dropdown { pointer-events:none; }
+.focus-reading .reader-controls button, .focus-reading .controls-sheet { pointer-events:auto; }
+.focus-reading .page-navigation > button { width:44px; height:44px; min-height:44px; }

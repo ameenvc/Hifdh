@@ -70,3 +70,45 @@ test("repeated spelling counts and colours ignore diacritics without claiming sh
   assert.equal(repeatColour("قُلْ"), repeatColour("قل"));
   assert.equal(wordFrequency("not an Arabic word"), 0);
 });
+
+test("English meaning source is intact and maps to corpus word positions", async () => {
+  const { default: entries } =
+    await import("../public/data/meanings/english.js");
+  const meanings = new Map(entries);
+  const provenance = JSON.parse(
+    readFileSync(
+      new URL("../public/data/meanings/provenance.json", import.meta.url),
+    ),
+  );
+  assert.equal(
+    createHash("sha256")
+      .update(
+        readFileSync(
+          new URL("../public/data/meanings/english.js", import.meta.url),
+        ),
+      )
+      .digest("hex"),
+    provenance.sha256,
+  );
+  assert.equal(JSON.parse(meanings.get("1:6:1:1")), "Guide us");
+  assert.equal(JSON.parse(meanings.get("1:5:2:1")), "we worship");
+  let covered = 0,
+    absent = 0;
+  for (let s = 1; s <= 114; s++) {
+    const rows = read(s);
+    chapter(s).verses.forEach((verse, i) => {
+      let position = 0;
+      practiceText(s, i, verse)
+        .split(/\s+/)
+        .forEach((word, w) => {
+          if (studyKey(word)) position++;
+          if (rows[i][w]) {
+            if (meanings.has(`${s}:${i + 1}:${position}:1`)) covered++;
+            else absent++;
+          }
+        });
+    });
+  }
+  assert.ok(covered > 77000);
+  assert.equal(absent, 0);
+});

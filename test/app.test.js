@@ -254,10 +254,11 @@ test("Memorize opens the full reader with concealed words and focus is reversibl
   a.tab("Practice");
   assert.ok(a.w.document.querySelector(".reader-shell"));
   assert.ok(a.w.document.querySelector(".current-verse .masked-word"));
-  a.click("focus");
   assert.ok(a.w.document.body.classList.contains("focus-reading"));
   a.click("focus");
   assert.ok(!a.w.document.body.classList.contains("focus-reading"));
+  a.click("focus");
+  assert.ok(a.w.document.body.classList.contains("focus-reading"));
   a.close();
 });
 test("all chapters open offline with Bismillah separated and source numbering unchanged", async () => {

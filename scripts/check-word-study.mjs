@@ -48,8 +48,23 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(url);
   await page.evaluate(() => document.fonts.ready);
+  assert.ok(
+    await page
+      .locator("body")
+      .evaluate((e) => e.classList.contains("focus-reading")),
+  );
+  assert.equal(await page.locator(".reader-mode").isVisible(), false);
+  assert.equal(await page.locator('.reader-mode a[href*="tanzil"]').count(), 0);
+  const selectMode = async (mode) => {
+    await page.locator("#reader-settings").click();
+    await page.locator(`[data-mode="${mode}"]`).click();
+    await page.locator("#reader-settings").click();
+  };
   const original = await page.locator(".mushaf-text").allTextContents();
-  assert.equal(await page.locator("#study-grammar-quick").getAttribute("aria-pressed"), "true");
+  assert.equal(
+    await page.locator("#study-grammar-quick").getAttribute("aria-pressed"),
+    "true",
+  );
   await page.keyboard.press("Escape");
   const word = page.locator('[data-study-word="1:5:0"]');
   await word.waitFor();
@@ -66,9 +81,16 @@ try {
     /Imperative/,
   );
   assert.match(await page.locator("#word-study-panel").textContent(), /هدي/);
+  await page.waitForFunction(() =>
+    document.querySelector(".study-meaning")?.textContent.includes("Guide us"),
+  );
   const bounds = await page.locator("#word-study-panel").boundingBox();
   const reading = await page.locator(".mushaf").boundingBox();
-  assert.ok(bounds.y >= reading.y && bounds.y + bounds.height <= reading.y + reading.height + 1, "Study card must leave reader controls accessible");
+  assert.ok(
+    bounds.y >= reading.y &&
+      bounds.y + bounds.height <= reading.y + reading.height + 1,
+    "Study card must leave reader controls accessible",
+  );
   assert.ok(
     bounds.x >= 0 &&
       bounds.x + bounds.width <= 390 &&
@@ -77,7 +99,10 @@ try {
   );
 
   await page.locator("#word-study-panel>button").click();
-  assert.equal(await page.locator("#study-repeated-quick").getAttribute("aria-pressed"), "true");
+  assert.equal(
+    await page.locator("#study-repeated-quick").getAttribute("aria-pressed"),
+    "true",
+  );
   await page.keyboard.press("Escape");
   assert.ok((await page.locator(".repeated-word").count()) > 0);
   assert.deepEqual(
@@ -112,32 +137,70 @@ try {
       }),
     "Red alert must override study colours",
   );
-  await page.locator('[data-mode="Recall & recite"]').click();
+  await selectMode("Recall & recite");
   assert.equal(await page.locator(".masked-word[data-study-word]").count(), 0);
-  await page.locator('[data-mode="Read & reflect"]').click();
+  await selectMode("Read & reflect");
+  await page.locator("#reader-settings").click();
   await page.locator("#study-grammar-quick").click();
   await page.locator("#study-repeated-quick").click();
   await page.reload();
-  assert.equal(await page.locator("#study-grammar-quick").getAttribute("aria-pressed"), "false");
-  assert.equal(await page.locator("#study-repeated-quick").getAttribute("aria-pressed"), "false");
+  assert.equal(
+    await page.locator("#study-grammar-quick").getAttribute("aria-pressed"),
+    "false",
+  );
+  assert.equal(
+    await page.locator("#study-repeated-quick").getAttribute("aria-pressed"),
+    "false",
+  );
   assert.equal(await page.locator(".repeated-word").count(), 0);
+  await word.tap();
+  await page.waitForFunction(() =>
+    document.querySelector(".study-meaning")?.textContent.includes("Guide us"),
+  );
+  await page.keyboard.press("Escape");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("#reader-settings").click();
-  await page.locator("#font-size").evaluate(e => { e.value = "30"; e.dispatchEvent(new Event("input", { bubbles: true })); });
+  await page.locator("#font-size").evaluate((e) => {
+    e.value = "30";
+    e.dispatchEvent(new Event("input", { bubbles: true }));
+  });
   await page.locator("#reader-settings").click();
   for (const surah of ["1", "2", "19", "114"]) {
     await page.locator("#surah-picker").selectOption(surah);
-    assert.equal(await page.locator(".mushaf-text").first().evaluate(e => getComputedStyle(e).fontSize), "30px");
+    assert.equal(
+      await page
+        .locator(".mushaf-text")
+        .first()
+        .evaluate((e) => getComputedStyle(e).fontSize),
+      "30px",
+    );
   }
   await page.locator("#surah-picker").selectOption("2");
   await page.locator("#page-next").click();
-  assert.equal(await page.locator(".mushaf-text").first().evaluate(e => getComputedStyle(e).fontSize), "30px");
-  assert.equal(await page.locator(".paged-mushaf").evaluate(e => getComputedStyle(e).overflowY), "auto");
+  assert.equal(
+    await page
+      .locator(".mushaf-text")
+      .first()
+      .evaluate((e) => getComputedStyle(e).fontSize),
+    "30px",
+  );
+  assert.equal(
+    await page
+      .locator(".paged-mushaf")
+      .evaluate((e) => getComputedStyle(e).overflowY),
+    "auto",
+  );
   await page.setViewportSize({ width: 768, height: 1024 });
-  assert.equal(await page.locator(".mushaf-text").first().evaluate(e => getComputedStyle(e).fontSize), "30px");
+  assert.equal(
+    await page
+      .locator(".mushaf-text")
+      .first()
+      .evaluate((e) => getComputedStyle(e).fontSize),
+    "30px",
+  );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: phone tap, desktop hover, corpus verb details, theme, word colours, unchanged Quran text, hidden-word protection and consistent text size across pages/resizing.",
+    "PASS: phone tap, desktop hover, corpus verb details, theme, word colours, unchanged Quran text, hidden-word protection, English meanings, minimal reader and consistent text size across pages/resizing.",
   );
 } finally {
   await browser?.close();

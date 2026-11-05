@@ -1,0 +1,6 @@
+English word-by-word translations collected by Hablullah from various sources.
+Source attribution: https://github.com/Abbas1997/QuranicMorphology/tree/b7d2665b0a568a90f8d4703ec36099fcc43fdc29
+Original credited source: https://github.com/hablullah/data-quran
+License: Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International
+https://creativecommons.org/licenses/by-nc-nd/4.0/
+The source module is retained unchanged as public/data/meanings/english.js. No source translation strings have been edited.
