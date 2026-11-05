@@ -1,0 +1,10 @@
+{
+  "translator": "Marmaduke Pickthall (1930)",
+  "language": "English",
+  "source": "risan/quran-json",
+  "commit": "6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123",
+  "path": "data/extra/english_pickthall.json",
+  "sha256": "f93ecb2a50578c9cc4e5b89630e79fa9bcdd1d289b1a858f2aedf5aa55e8194a",
+  "license": "Public domain translation, as identified in upstream README and edition configuration",
+  "usage": "Source file retained verbatim; ayahs selected by surah and Hafs verse number."
+}
