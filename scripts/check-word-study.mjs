@@ -46,6 +46,14 @@ try {
   });
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => {
+    window.SpeechRecognition = class {
+      start() {}
+      abort() {
+        this.onend?.();
+      }
+    };
+  });
   await page.goto(url);
   await page.evaluate(() => document.fonts.ready);
   assert.ok(
@@ -239,6 +247,32 @@ try {
       .evaluate((e) => getComputedStyle(e).fontSize),
     "30px",
   );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator("#check-recitation").click();
+  await page.locator("#recitation-mode-dialog").waitFor();
+  await page.locator("#start-normal-recitation").click();
+  assert.equal(
+    await page.locator("#check-recitation").getAttribute("aria-pressed"),
+    "true",
+  );
+  assert.equal(await page.locator(".masked-word").count(), 0);
+  assert.match(
+    await page.locator(".recitation-live-status").textContent(),
+    /Normal recitation/,
+  );
+  await page.locator("#check-recitation").click();
+  await page.locator("#check-recitation").click();
+  await page.locator("#start-hifdh-recitation").click();
+  assert.equal(
+    await page.locator("#check-recitation").getAttribute("aria-pressed"),
+    "true",
+  );
+  assert.ok((await page.locator(".masked-word").count()) > 0);
+  assert.match(
+    await page.locator(".recitation-live-status").textContent(),
+    /Hifdh/,
+  );
+  await page.locator("#check-recitation").click();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: phone tap, desktop hover, corpus verb details, theme, word colours, unchanged Quran text, hidden-word protection, English meanings, minimal reader and consistent text size across pages/resizing.",

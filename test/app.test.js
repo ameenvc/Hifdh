@@ -71,6 +71,10 @@ function app(
     const element = w.document.getElementById(id);
     assert.ok(element, `Missing #${id}`);
     element.click();
+    if (id === "check-recitation") {
+      const choice = w.document.getElementById("recitation-mode-dialog");
+      if (choice) w.document.getElementById(w.document.querySelector('[data-mode="Recall & recite"].selected') ? "start-hifdh-recitation" : "start-normal-recitation").click();
+    }
   };
   const tab = (name) => {
     const element = w.document.querySelector(`[data-tab="${name}"]`);
@@ -915,4 +919,23 @@ test("default checking marks final mismatches red and sounds while interim guess
     assert.ok(a.tones > 0);
     assert.equal(a.w.document.getElementById("check-recitation").getAttribute("aria-pressed"), "true");
   } finally { a.close(); }
+});
+
+
+test("microphone exposes normal and Hifdh choices and starts the selected mode", async () => {
+ const a=app();
+ try {
+  a.w.document.getElementById('check-recitation').click();
+  assert.ok(a.w.document.getElementById('recitation-mode-dialog'));
+  a.click('start-hifdh-recitation');
+  assert.equal(a.w.document.getElementById('recitation-mode-dialog'),null);
+  assert.equal(a.w.document.getElementById('check-recitation').getAttribute('aria-pressed'),'true');
+  assert.ok(a.w.document.querySelector('.masked-word'));
+  assert.match(a.w.document.querySelector('.recitation-live-status').textContent,/Hifdh/);
+  a.click('check-recitation');
+  a.w.document.getElementById('check-recitation').click();
+  a.click('start-normal-recitation');
+  assert.equal(a.w.document.querySelector('.masked-word'),null);
+  assert.match(a.w.document.querySelector('.recitation-live-status').textContent,/Normal recitation/);
+ } finally {a.close();}
 });

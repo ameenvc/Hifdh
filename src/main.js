@@ -432,6 +432,28 @@ function tone() {
     Promise.resolve(alertContext.resume()).then(play).catch(fallback);
   else play();
 }
+function chooseRecitationMode() {
+  if (state.listening) { startReciting(false); return; }
+  document.getElementById("recitation-mode-dialog")?.remove();
+  const dialog=document.createElement("dialog");
+  dialog.id="recitation-mode-dialog";
+  dialog.setAttribute("aria-labelledby","recitation-mode-title");
+  dialog.innerHTML='<button class="recitation-mode-close" aria-label="Close recitation choices">×</button><h2 id="recitation-mode-title">Check my recitation</h2><p>Choose how you want to recite.</p><button id="start-normal-recitation" class="recitation-mode-choice"><strong>Normal recitation</strong><span>Keep the Quran text visible while reciting.</span></button><button id="start-hifdh-recitation" class="recitation-mode-choice"><strong>Hifdh · from memory</strong><span>Hide the words and reveal them as you recite.</span></button>';
+  const close=()=>{dialog.remove();document.getElementById("check-recitation")?.focus();};
+  dialog.querySelector('.recitation-mode-close').onclick=close;
+  dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
+  const begin=mode=>{
+    dialog.remove();
+    state.mode=mode;
+    if(mode==='Read & reflect')state.challenge=null;
+    state.readerResults={};
+    startReciting(false);
+  };
+  dialog.querySelector('#start-normal-recitation').onclick=()=>begin('Read & reflect');
+  dialog.querySelector('#start-hifdh-recitation').onclick=()=>begin('Recall & recite');
+  document.body.append(dialog);
+  if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
+}
 function startReciting(findAnywhere = false) {
   if (state.loading) return;
   prepareAlertSound();
@@ -760,7 +782,7 @@ function bind() {
     state.sound = !state.sound;
     render();
   });
-  on("check-recitation", () => startReciting(false));
+  on("check-recitation", chooseRecitationMode);
   on("listen", () => startReciting(false));
   on("locate-start", () => startReciting(true));
   on("challenge-listen", () => startReciting(false));
@@ -1267,6 +1289,7 @@ document.addEventListener("keydown", (event) => {
   if (
     !document.querySelector(".paged-mushaf") ||
     document.querySelector("#verse-meaning-panel") ||
+    document.querySelector("#recitation-mode-dialog") ||
     state.controlsOpen ||
     event.target?.matches?.("input,select,textarea") ||
     event.altKey ||
