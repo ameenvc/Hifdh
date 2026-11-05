@@ -939,3 +939,16 @@ test("microphone exposes normal and Hifdh choices and starts the selected mode",
   assert.match(a.w.document.querySelector('.recitation-live-status').textContent,/Normal recitation/);
  } finally {a.close();}
 });
+
+
+test("a microphone start failure remains visible after choosing a mode", () => {
+ const a=app();
+ try {
+  a.w.SpeechRecognition.prototype.start=()=>{throw Error('microphone blocked');};
+  a.w.document.getElementById('check-recitation').click();
+  a.click('start-normal-recitation');
+  assert.equal(a.w.document.getElementById('controls-toggle').getAttribute('aria-expanded'),'true');
+  assert.equal(a.w.document.getElementById('check-recitation').getAttribute('aria-pressed'),'false');
+  assert.match(a.w.document.querySelector('.recitation-status').textContent,/Could not start the microphone/);
+ } finally {a.close();}
+});

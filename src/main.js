@@ -723,7 +723,9 @@ function startReciting(findAnywhere = false) {
   } catch {
     recognition = null;
     endActivity();
-    state.feedback = "Could not start the microphone. Please try again.";
+    state.listening = false;
+    state.controlsOpen = true;
+    state.feedback = "Could not start the microphone. Check microphone permission and try again.";
   }
   render();
 }
