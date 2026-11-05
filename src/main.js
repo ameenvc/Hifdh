@@ -81,7 +81,7 @@ let state = {
   controlsOpen: false,
   soundBlocked: false,
   feedbackMode:
-    readLocal("hifdh-feedback-mode", "safe") === "experimental"
+    readLocal("hifdh-feedback-mode", "experimental") === "experimental"
       ? "experimental"
       : "safe",
   uncertaintyActive: false,

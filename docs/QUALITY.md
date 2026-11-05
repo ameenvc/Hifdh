@@ -73,3 +73,7 @@ Browser checks were run against that local production build with Chromium/Playwr
 ## Recitation access and microphone continuity — 5 November 2026
 
 Added a visible Check my recitation button and live feedback outside the secondary dropdown. Browser-ended sessions reconnect with finalized transcript and passage cursor preserved; three consecutive empty sessions stop retries. Pausing cancels pending reconnects, and permission/device errors do not retry automatically. All 74 automated tests pass, including reconnect continuity, cancellation and denied-permission cases. The responsive layout suite also checks the persistent button in both themes and reader/reciting modes. This improves browser session handling, not acoustic recognition accuracy. Real microphone accuracy and physical iPhone behavior remain unverified.
+
+## Red text and sound — 5 November 2026
+
+At user request, red text alerts are enabled by default for finalized browser text mismatches, with the warning tone when sound is on. Existing saved feedback preferences are respected; the controls menu labels the setting Red alerts on/off. Interim guesses remain quiet, and recitation can continue after a mismatch. Safe feedback remains selectable. The 75-test suite includes default red marking and tone dispatch as well as safe-mode suppression. These alerts remain experimental and do not establish that the speaker made an actual mistake. Physical iPhone audibility remains unverified. This supersedes earlier default-safe statements in this dated report.

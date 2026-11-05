@@ -539,8 +539,8 @@ test("a suspended audio context is resumed rather than silently dropping the ale
   a.close();
 });
 
-test("safe feedback is the default: browser differences never become automatic red mistakes or sounds", async () => {
-  const a = app(undefined, {});
+test("safe feedback can be selected: browser differences never become automatic red mistakes or sounds", async () => {
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.tab("Practice");
   a.click("listen");
@@ -560,7 +560,7 @@ test("safe feedback is the default: browser differences never become automatic r
   a.close();
 });
 test("only user-confirmed mistakes become red in safe mode and correct-recitation reports can be dismissed", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.click("listen");
   a.say("بسم نور الرحمن الرحيم الحمد لله رب العالمين");
@@ -579,7 +579,7 @@ test("only user-confirmed mistakes become red in safe mode and correct-recitatio
 import standardText from "../src/data/simple-clean.json" with { type: "json" };
 import { practiceText } from "../src/quran.js";
 test("Yunus session boundaries remain aligned across punctuation-only recognition tokens", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.w.document.querySelector('[data-tab="Library"]').click();
   a.w.document.querySelector('[data-surah="10"]').click();
@@ -643,7 +643,7 @@ test("last page shows all its surahs and selecting another surah retains the pag
   a.close();
 });
 test("recitation automatically displays the next standard page without restarting recognition", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.click("page-next");
   a.w.document.querySelector('[data-chapter="2"][data-verse="4"]').click();
@@ -731,7 +731,7 @@ test("ordinary taps do not redraw the reader or remove focused controls", async 
 });
 
 test("Start anywhere locates a mid-ayah phrase on its page without marking the preceding words missed", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.click("locate-start");
   a.say("وبشر الذين آمنوا أن لهم قدم صدق");
@@ -754,7 +754,7 @@ test("Start anywhere locates a mid-ayah phrase on its page without marking the p
   a.close();
 });
 test("ambiguous recitation asks for context and permits choosing a candidate", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.click("locate-start");
   a.say("الحمد لله رب العالمين");
@@ -770,7 +770,7 @@ test("ambiguous recitation asks for context and permits choosing a candidate", a
   a.close();
 });
 test("full-ayah exercise shows a cue and hides the following ayah until recited", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.click("open-challenge");
   a.w.document.getElementById("quiz-ayah").value = "2";
@@ -802,7 +802,7 @@ test("full-ayah exercise shows a cue and hides the following ayah until recited"
   a.close();
 });
 test("finish-ayah exercise compares only the hidden remainder and can return to the full Quran page", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.click("open-challenge");
   const style = a.w.document.getElementById("quiz-style");
@@ -837,7 +837,7 @@ test("finish-ayah exercise compares only the hidden remainder and can return to 
 });
 
 test("Start anywhere finds a short unique ayah after Bismillah and continues on its page", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   await tick();
   a.click("locate-start");
   a.say("بسم الله الرحمن الرحيم قل هو الله احد");
@@ -872,7 +872,7 @@ test("main reader exposes checking directly and pause cancels microphone reconne
 });
 
 test("microphone reconnect preserves finalized words across recognition sessions", async () => {
-  const a = app(undefined, {});
+  const a = app(undefined, { "hifdh-feedback-mode": '"safe"' });
   try {
     a.click("check-recitation");
     a.say("بسم الله");
@@ -898,5 +898,20 @@ test("denied microphone permission does not enter an automatic reconnect loop", 
     await new Promise(resolve => setTimeout(resolve, 420));
     assert.equal(starts, 0);
     assert.match(a.w.document.body.textContent, /Microphone access was denied/);
+  } finally { a.close(); }
+});
+
+
+test("default checking marks final mismatches red and sounds while interim guesses stay quiet", async () => {
+  const a = app(undefined, {});
+  try {
+    a.click("check-recitation");
+    a.say("بسم نور", false);
+    assert.equal(a.tones, 0);
+    assert.equal(a.w.document.querySelector(".word.mistake"), null);
+    a.say("بسم نور الرحمن الرحيم", true);
+    assert.ok(a.w.document.querySelector(".word.mistake"));
+    assert.ok(a.tones > 0);
+    assert.equal(a.w.document.getElementById("check-recitation").getAttribute("aria-pressed"), "true");
   } finally { a.close(); }
 });
