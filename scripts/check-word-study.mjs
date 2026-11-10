@@ -91,6 +91,19 @@ try {
     /Imperative/,
   );
   assert.match(await page.locator("#word-study-panel").textContent(), /هدي/);
+  assert.equal(await page.locator(".study-pattern").getAttribute("lang"), "ar");
+  assert.equal(
+    await page
+      .locator(".study-pattern")
+      .evaluate((e) => getComputedStyle(e).fontSize),
+    "32px",
+  );
+  assert.equal(
+    await page
+      .locator(".study-arabic > .study-arabic-run")
+      .evaluate((e) => getComputedStyle(e).fontSize),
+    "44px",
+  );
   assert.equal(await page.locator(".study-more").getAttribute("open"), null);
   assert.equal(
     await page.locator(".study-more .meaning-credit").isVisible(),

@@ -182,7 +182,18 @@ function showWord(element, segments, focus = false) {
   panel.append(close);
   const add = (text, cls = "", target = panel) => {
     const p = document.createElement("p");
-    p.textContent = text;
+    for (const part of text.split(
+      /([\u0600-\u06ff]+(?:\s+[\u0600-\u06ff]+)*)/g,
+    )) {
+      if (/[\u0600-\u06ff]/.test(part)) {
+        const arabic = document.createElement("span");
+        arabic.className = "study-arabic-run";
+        arabic.lang = "ar";
+        arabic.dir = "rtl";
+        arabic.textContent = part;
+        p.append(arabic);
+      } else p.append(document.createTextNode(part));
+    }
     if (cls) p.className = cls;
     target.append(p);
   };
@@ -227,7 +238,22 @@ function showWord(element, segments, focus = false) {
         if (segment.lemma)
           add(`Lemma / base form: ${segment.lemma}`, "", extra);
         if (segment.verbForm) {
-          add(segment.verbForm.label, "study-verb-form", target);
+          const form = document.createElement("p");
+          form.className = "study-verb-form";
+          const label = document.createElement("span");
+          label.className = "study-field-label";
+          label.textContent = `${segment.verbForm.quadriliteral ? "Quadriliteral form" : "Verb form"} ${segment.verbForm.number}`;
+          form.append(label);
+          const pattern = document.createElement("span");
+          pattern.className = "study-pattern";
+          pattern.textContent =
+            segment.verbForm.pattern || "Pattern not specified";
+          if (segment.verbForm.pattern) {
+            pattern.lang = "ar";
+            pattern.dir = "rtl";
+          }
+          form.append(pattern);
+          target.append(form);
           add(segment.verbForm.note, "study-features", extra);
         }
         if (segment.details.length)
@@ -276,6 +302,13 @@ function showWord(element, segments, focus = false) {
     bottom = Math.min(innerHeight - 8, reading.bottom);
   const below = bottom - rect.bottom - 8,
     above = rect.top - top - 8;
+  if (focus) {
+    panel.style.maxHeight = `${Math.max(80, Math.min(680, bottom - top - 16))}px`;
+    panel.style.bottom = "auto";
+    panel.style.top = `${top + 8}px`;
+    close.focus({ preventScroll: true });
+    return;
+  }
   const space = Math.max(below, above);
   panel.style.maxHeight = `${Math.min(520, Math.max(48, space - 8))}px`;
   panel.style.bottom = "auto";

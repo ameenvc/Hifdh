@@ -4862,3 +4862,21 @@ body[data-theme="black"] {
 #word-study-panel details[open] > summary { margin-bottom:10px; background:var(--raised); }
 #word-study-panel .study-reference { margin-right:6px; }
 #word-study-panel .study-count { display:inline-block; margin:0 0 10px; padding:3px 9px; border-radius:20px; font-size:11px; }
+/* Quiet teal-and-neutral card, with Arabic set independently in Amiri. */
+body[data-theme="white"] { --study-meaning-bg:#edf6f4; --study-meaning-ink:#164d47; --study-neutral-bg:#f3f5f5; --study-neutral-ink:#4b5962; --study-header-ink:#164d47; }
+body[data-theme="black"] { --study-meaning-bg:#142f2c; --study-meaning-ink:#c0e6df; --study-neutral-bg:#1c2223; --study-neutral-ink:#cbd4d8; --study-header-ink:#b0ddd4; }
+#word-study-panel { border-radius:16px; background:var(--surface); }
+#word-study-panel .study-arabic { font-size:44px; line-height:1.7; color:var(--text); }
+#word-study-panel .study-arabic-run { font-family:Amiri,'Times New Roman',serif; font-size:28px; line-height:1.9; font-weight:400; unicode-bidi:isolate; }
+#word-study-panel .study-arabic > .study-arabic-run { font-size:44px; line-height:1.7; }
+#word-study-panel .study-segment { color:var(--text); font-weight:400; }
+#word-study-panel .study-segment .study-arabic-run { font-size:26px; }
+#word-study-panel .study-meaning { font-size:15px; padding:12px; border-radius:8px; }
+#word-study-panel .study-root,
+#word-study-panel .study-tense { background:transparent; color:var(--text); border:0; border-bottom:1px solid var(--line); border-radius:0; padding:5px 0 9px; font-size:13px; font-weight:400; }
+#word-study-panel .study-root { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+#word-study-panel .study-verb-form { background:var(--raised); color:var(--text); border:1px solid var(--line); border-inline-start:3px solid var(--accent); border-radius:8px; padding:10px 12px; }
+#word-study-panel .study-field-label { display:block; font-size:12px; font-weight:500; color:var(--muted); }
+#word-study-panel .study-pattern { display:block; font-family:Amiri,'Times New Roman',serif; font-size:32px; line-height:2; font-weight:400; color:var(--text); text-align:right; unicode-bidi:isolate; }
+#word-study-panel .study-pattern:not([lang="ar"]) { font-family:inherit; font-size:13px; text-align:left; }
+#word-study-panel .study-features .study-arabic-run { font-size:24px; }
