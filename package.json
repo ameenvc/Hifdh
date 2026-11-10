@@ -9,14 +9,26 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test",
     "test:layout": "npm run build -- --base=/Hifdh/ && node scripts/check-layout.mjs",
-    "test:study": "npm run build -- --base=/Hifdh/ && node scripts/check-word-study.mjs"
+    "test:study": "npm run build -- --base=/Hifdh/ && node scripts/check-word-study.mjs",
+    "build:native": "vite build --base=/ --outDir native-dist",
+    "mobile:sync": "npm run build:native && cap sync",
+    "android:open": "cap open android",
+    "ios:open": "cap open ios",
+    "android:apk": "npm run mobile:sync && node scripts/build-android.mjs",
+    "icons:generate": "node scripts/generate-app-icons.mjs",
+    "deploy:pages": "npm run build -- --base=/Hifdh/ && python scripts/deploy-pages.py",
+    "test:native": "npm run build:native && node scripts/check-native-web.mjs"
   },
   "devDependencies": {
+    "@capacitor/cli": "7.6.10",
     "jsdom": "^26.1.0",
     "playwright": "^1.64.1",
     "vite": "^6.4.1"
   },
   "dependencies": {
+    "@capacitor/android": "7.6.10",
+    "@capacitor/core": "7.6.10",
+    "@capacitor/ios": "7.6.10",
     "@fontsource/amiri": "^5.3.0",
     "@fontsource/dm-sans": "^5.3.0",
     "@fontsource/manrope": "^5.3.0"

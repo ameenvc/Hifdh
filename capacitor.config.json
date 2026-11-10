@@ -1,0 +1,7 @@
+{
+  "appId": "com.ameenvc.hifdh",
+  "appName": "Hifdh",
+  "webDir": "native-dist",
+  "backgroundColor": "#ffffff",
+  "ios": { "contentInset": "automatic" }
+}

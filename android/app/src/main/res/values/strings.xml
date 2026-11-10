@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Hifdh</string>
+    <string name="title_activity_main">Hifdh</string>
+    <string name="package_name">com.ameenvc.hifdh</string>
+    <string name="custom_url_scheme">com.ameenvc.hifdh</string>
+</resources>

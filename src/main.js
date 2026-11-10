@@ -1,3 +1,4 @@
+import { installNativeSpeech } from "./native-speech.js";
 import { showVerseMeaning } from "./verse-meaning.js";
 import { bindWordStudy, toggleStudy } from "./word-study.js";
 import "@fontsource/amiri/arabic-400.css";
@@ -46,6 +47,7 @@ function readLocal(key, fallback) {
     return fallback;
   }
 }
+const nativeSpeechEnabled = installNativeSpeech();
 let state = {
   surah: 1,
   verses: initialChapter.verses,
@@ -444,7 +446,7 @@ function chooseRecitationMode() {
   const dialog=document.createElement("dialog");
   dialog.id="recitation-mode-dialog";
   dialog.setAttribute("aria-labelledby","recitation-mode-title");
-  dialog.innerHTML='<button class="recitation-mode-close" aria-label="Close recitation choices">×</button><h2 id="recitation-mode-title">Check my recitation</h2><p>Choose how you want to recite.</p><button id="start-normal-recitation" class="recitation-mode-choice"><strong>Normal recitation</strong><span>Keep the Quran text visible while reciting.</span></button><button id="start-hifdh-recitation" class="recitation-mode-choice"><strong>Hifdh · from memory</strong><span>Hide the words and reveal them as you recite.</span></button>';
+  dialog.innerHTML='<button class="recitation-mode-close" aria-label="Close recitation choices">×</button><h2 id="recitation-mode-title">Check my recitation</h2><p>Choose how you want to recite.</p><button id="start-normal-recitation" class="recitation-mode-choice"><strong>Normal recitation</strong><span>Keep the Quran text visible while reciting.</span></button><button id="start-hifdh-recitation" class="recitation-mode-choice"><strong>Hifdh · from memory</strong><span>Hide the words and reveal them as you recite.</span></button><p class="recognition-note">Your device or browser speech provider may process audio online. Automatic Quran recitation judging is not validated.</p>';
   const close=()=>{dialog.remove();document.getElementById("check-recitation")?.focus();};
   dialog.querySelector('.recitation-mode-close').onclick=close;
   dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
@@ -676,8 +678,12 @@ function startReciting(findAnywhere = false) {
     fatalError = true;
     state.feedback =
       e.error === "not-allowed"
-        ? "Microphone access was denied. Allow it in browser settings to recite."
-        : `Speech recognition stopped (${e.error}). Try again or practice using audio and hints.`;
+        ? "Microphone access was denied. Allow it in device or browser settings to recite."
+        : ["service-not-allowed", "language-not-supported"].includes(e.error)
+          ? "Arabic speech recognition is unavailable. Enable an Arabic-capable speech service in device settings, then retry. Hints and reference audio remain available."
+          : e.error === "network"
+            ? "Speech recognition lost its connection. Check your internet connection and try again."
+            : `Speech recognition stopped (${e.error}). Try again or practice using audio and hints.`;
     state.listening = false;
     state.controlsOpen = true;
     endActivity();
@@ -890,13 +896,13 @@ function saveAttempt(transcript, result) {
       ).trim(),
       details: result.details,
       reviewStatus: "unverified",
-      source: "browser-speech",
+      source: nativeSpeechEnabled ? "device-speech" : "browser-speech",
     });
   state.mistakes = state.mistakes.slice(0, 200);
   writeLocal("hifdh-mistakes", state.mistakes);
 }
 function recitationFeedback() {
-  return `<div class="recitation-status ${state.alertActive ? "has-error" : state.uncertaintyActive ? "has-uncertainty" : ""} ${state.alertActive ? "mistake-alert-active" : ""}" role="status"><span>${state.alertActive ? "⚠" : state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${state.alertActive ? '<strong class="alert-label">CHECK TRANSCRIPT</strong>' : ""}${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What your browser heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
+  return `<div class="recitation-status ${state.alertActive ? "has-error" : state.uncertaintyActive ? "has-uncertainty" : ""} ${state.alertActive ? "mistake-alert-active" : ""}" role="status"><span>${state.alertActive ? "⚠" : state.listening ? '<i class="live-dot"></i>' : "✧"}</span>${state.alertActive ? '<strong class="alert-label">CHECK TRANSCRIPT</strong>' : ""}${escape(state.feedback)}</div>${state.transcript ? `<details class="transcript"><summary>What recognition heard</summary><p lang="ar" dir="rtl">${escape(state.transcript)}</p><small>Possible mismatches are saved on this device for review.</small></details>` : ""}`;
 }
 function readerWords(verse, index, number = state.surah) {
   if (number === state.surah && index === state.verse) return renderWords();
