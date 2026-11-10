@@ -91,8 +91,22 @@ try {
     /Imperative/,
   );
   assert.match(await page.locator("#word-study-panel").textContent(), /هدي/);
-  assert.match(await page.locator('.study-verb-form').textContent(), /Verb form I/);
-  assert.match(await page.locator('.study-verb-form').textContent(), /فَعَلَ/);
+  assert.equal(await page.locator(".study-more").getAttribute("open"), null);
+  assert.equal(
+    await page.locator(".study-more .meaning-credit").isVisible(),
+    false,
+  );
+  await page.locator(".study-more > summary").click();
+  assert.equal(
+    await page.locator(".study-more .meaning-credit").isVisible(),
+    true,
+  );
+  await page.locator(".study-more > summary").click();
+  assert.match(
+    await page.locator(".study-verb-form").textContent(),
+    /Verb form I/,
+  );
+  assert.match(await page.locator(".study-verb-form").textContent(), /فَعَلَ/);
   await page.waitForFunction(() =>
     document.querySelector(".study-meaning")?.textContent.includes("Guide us"),
   );

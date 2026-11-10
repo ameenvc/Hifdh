@@ -7,24 +7,47 @@ export const studyKey = (text) =>
     .replace(/[^\u0621-\u064a]/g, "")
     .replace(/ـ/g, "");
 const triliteralPatterns = {
-  I: "فَعَلَ / فَعِلَ / فَعُلَ", II: "فَعَّلَ", III: "فَاعَلَ", IV: "أَفْعَلَ",
-  V: "تَفَعَّلَ", VI: "تَفَاعَلَ", VII: "اِنْفَعَلَ", VIII: "اِفْتَعَلَ",
-  IX: "اِفْعَلَّ", X: "اِسْتَفْعَلَ",
+  I: "فَعَلَ / فَعِلَ / فَعُلَ",
+  II: "فَعَّلَ",
+  III: "فَاعَلَ",
+  IV: "أَفْعَلَ",
+  V: "تَفَعَّلَ",
+  VI: "تَفَاعَلَ",
+  VII: "اِنْفَعَلَ",
+  VIII: "اِفْتَعَلَ",
+  IX: "اِفْعَلَّ",
+  X: "اِسْتَفْعَلَ",
 };
-const quadriliteralPatterns = { I: "فَعْلَلَ", II: "تَفَعْلَلَ", III: "اِفْعَنْلَلَ", IV: "اِفْعَلَلَّ" };
+const quadriliteralPatterns = {
+  I: "فَعْلَلَ",
+  II: "تَفَعْلَلَ",
+  III: "اِفْعَنْلَلَ",
+  IV: "اِفْعَلَلَّ",
+};
 export function verbForm(tag, features) {
   if (tag !== "V" || !features.includes("STEM")) return null;
-  const root = features.find(f => f.startsWith("ROOT:"))?.slice(5);
+  const root = features.find((f) => f.startsWith("ROOT:"))?.slice(5);
   const rootSize = root ? [...root].length : 0;
-  const explicit = features.find(f => /^\([IVX]+\)$/.test(f))?.slice(1,-1);
-  const number = explicit || ([3,4].includes(rootSize) ? "I" : null);
+  const explicit = features.find((f) => /^\([IVX]+\)$/.test(f))?.slice(1, -1);
+  const number = explicit || ([3, 4].includes(rootSize) ? "I" : null);
   if (!number) return null;
   const quadriliteral = rootSize === 4;
-  const pattern = rootSize === 3 ? triliteralPatterns[number] : quadriliteral ? quadriliteralPatterns[number] : null;
-  return { number, pattern: pattern || null, quadriliteral,
+  const pattern =
+    rootSize === 3
+      ? triliteralPatterns[number]
+      : quadriliteral
+        ? quadriliteralPatterns[number]
+        : null;
+  return {
+    number,
+    pattern: pattern || null,
+    quadriliteral,
     label: `${quadriliteral ? "Quadriliteral form" : "Verb form"} ${number} · ${quadriliteral ? "رباعي" : "باب الفعل"}${pattern ? ` — ${pattern}` : " — pattern not specified"}`,
-    note: number === "I" && rootSize === 3 ? "Form I vowel subclass is not specified in the corpus. The alternatives are model patterns, not a claim about this word’s exact vowels."
-      : "Model stem pattern; tense, passive voice, and weak roots can change the word’s surface spelling." };
+    note:
+      number === "I" && rootSize === 3
+        ? "Form I vowel subclass is not specified in the corpus. The alternatives are model patterns, not a claim about this word’s exact vowels."
+        : "Model stem pattern; tense, passive voice, and weak roots can change the word’s surface spelling.",
+  };
 }
 export function describeSegments(segments) {
   const names = {
@@ -61,9 +84,7 @@ export function describeSegments(segments) {
     root: features.find((f) => f.startsWith("ROOT:"))?.slice(5),
     lemma: features.find((f) => f.startsWith("LEM:"))?.slice(4),
     verbForm: verbForm(tag, features),
-    details: features
-      .filter((f) => labels[f])
-      .map((f) => labels[f]),
+    details: features.filter((f) => labels[f]).map((f) => labels[f]),
     features: features
       .filter((f) => !f.startsWith("ROOT:") && !f.startsWith("LEM:"))
       .join(" · "),
@@ -185,6 +206,11 @@ function showWord(element, segments, focus = false) {
         meaning.textContent =
           "Meaning could not load. Check your connection, then tap the word again.";
     });
+  const more = document.createElement("details");
+  more.className = "study-more";
+  const moreSummary = document.createElement("summary");
+  moreSummary.textContent = "More details";
+  more.append(moreSummary);
   if (options.grammar) {
     if (!segments)
       add(
@@ -194,20 +220,17 @@ function showWord(element, segments, focus = false) {
       const { primary, attached } = partitionSegments(segments);
       const renderSegment = (segment, target = panel) => {
         add(`${segment.text} — ${segment.type}`, "study-segment", target);
-        if (segment.root) add(`Root · الجذر: ${segment.root}`, "", target);
+        if (segment.root) add(`Root: ${segment.root}`, "", target);
+        const extra = target === panel ? more : target;
         if (segment.lemma)
-          add(
-            `Corpus lemma / base form · الصيغة المعجمية: ${segment.lemma}`,
-            "",
-            target,
-          );
+          add(`Lemma / base form: ${segment.lemma}`, "", extra);
         if (segment.verbForm) {
           add(segment.verbForm.label, "study-verb-form", target);
-          add(segment.verbForm.note, "study-features", target);
+          add(segment.verbForm.note, "study-features", extra);
         }
         if (segment.details.length)
           add(segment.details.join(" · "), "", target);
-        add(segment.features, "study-features", target);
+        add(segment.features, "study-features", extra);
       };
       describeSegments(primary).forEach((segment) => renderSegment(segment));
       if (attached.length) {
@@ -223,25 +246,27 @@ function showWord(element, segments, focus = false) {
       }
     }
   }
+  const count = wordFrequency(element.textContent);
+  add(`Appears ${count} ${count === 1 ? "time" : "times"} in the Quran.`);
   add(
-    `Appears ${wordFrequency(element.textContent)} times in the Quran (same normalized word spelling; opening unnumbered Bismillah excluded).`,
-  );
-  add(
-    "Word morphology (ṣarf) and supplied case/mood tags; not a full sentence iʿrāb analysis.",
+    "Counts use normalized word spelling and exclude unnumbered opening Bismillah. Grammar shows word morphology and supplied case/mood tags, not full sentence analysis.",
+    "study-features",
+    more,
   );
   const link = document.createElement("a");
   link.href = `https://corpus.quran.com/wordbyword.jsp?chapter=${s}&verse=${Number(v) + 1}`;
   link.target = "_blank";
   link.rel = "noopener";
   link.textContent = "Source: Quranic Arabic Corpus · view ayah";
-  panel.append(link);
+  more.append(link);
   const credit = document.createElement("a");
   credit.href = `${import.meta.env.BASE_URL}licenses/english-word-meanings.txt`;
   credit.target = "_blank";
   credit.rel = "noopener";
   credit.textContent = "English meanings: Hablullah · source and terms";
   credit.className = "meaning-credit";
-  panel.append(credit);
+  more.append(credit);
+  panel.append(more);
   document.body.append(panel);
   // Place the card above or below its word so hover never blocks the tap target.
   const rect = element.getBoundingClientRect();

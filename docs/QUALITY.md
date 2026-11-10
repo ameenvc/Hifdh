@@ -131,3 +131,7 @@ All 87 automated tests pass, including a simulated misrecognized Yunus word unde
 Verb cards now show a dedicated form number and Arabic model pattern, using explicit corpus form tags or the corpus convention that an unmarked verb with a three/four-radical root is Form I. Triliteral and quadriliteral numbering use separate pattern tables. Form I’s vowel subclass is not inferred; the card explains this. Rare Form XII retains its corpus number without inventing an unsupported pattern. Model patterns are distinguished from the surface spelling, imperative/past/present and passive inflection. The underlying corpus data and Quran text remain unchanged.
 
 All 89 automated tests pass, including Fatiha’s imperative Form I, Form X, Form IV, a quadriliteral verb, noun exclusion and missing/rare annotations. The word-study browser regression verifies that the verb card shows Form I and an Arabic model pattern alongside its existing meaning/root/lemma. Actual scholarly validation of the corpus analyses remains outside these checks.
+
+## Compact word card — 10 November 2026
+
+Moved lemma/base form, raw feature tags, model-pattern notes, count explanations and source links into a closed More details disclosure. The visible card keeps meaning, word type, root, verb form, tense and a shorter repetition count. Source/license attribution remains accessible. The production browser regression verifies attribution is initially hidden, expands on demand and can be collapsed again, alongside the existing word/verse/mode checks. Quran and corpus data are unchanged.
