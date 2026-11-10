@@ -135,3 +135,7 @@ All 89 automated tests pass, including Fatiha’s imperative Form I, Form X, For
 ## Compact word card — 10 November 2026
 
 Moved lemma/base form, raw feature tags, model-pattern notes, count explanations and source links into a closed More details disclosure. The visible card keeps meaning, word type, root, verb form, tense and a shorter repetition count. Source/license attribution remains accessible. The production browser regression verifies attribution is initially hidden, expands on demand and can be collapsed again, alongside the existing word/verse/mode checks. Quran and corpus data are unchanged.
+
+## Word-card colour hierarchy — 10 November 2026
+
+Redesigned the card with labelled mint meaning, blue root, purple form and amber tense sections, plus neutral reference/count chips at the top. Technical details and attribution remain collapsed. Both light and dark versions were visually inspected at a phone viewport. The production study browser suite passes. Computed contrast ratios for the five section text/background pairs range from 6.26:1 to 7.67:1 in white view and 9.28:1 to 10.06:1 in black view. These checks cover those sections, not a full accessibility audit. Quran text, grammar data and recitation logic are unchanged.

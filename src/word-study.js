@@ -188,7 +188,9 @@ function showWord(element, segments, focus = false) {
   };
   add(element.textContent, "study-arabic");
   const [s, v, w] = element.dataset.studyWord.split(":");
-  add(`Surah ${s} · Ayah ${Number(v) + 1}`);
+  add(`Surah ${s} · Ayah ${Number(v) + 1}`, "study-reference");
+  const count = wordFrequency(element.textContent);
+  add(`In Quran: ${count} ${count === 1 ? "time" : "times"}`, "study-count");
   const meaning = document.createElement("p");
   meaning.className = "study-meaning";
   meaning.setAttribute("role", "status");
@@ -220,7 +222,7 @@ function showWord(element, segments, focus = false) {
       const { primary, attached } = partitionSegments(segments);
       const renderSegment = (segment, target = panel) => {
         add(`${segment.text} — ${segment.type}`, "study-segment", target);
-        if (segment.root) add(`Root: ${segment.root}`, "", target);
+        if (segment.root) add(`Root: ${segment.root}`, "study-root", target);
         const extra = target === panel ? more : target;
         if (segment.lemma)
           add(`Lemma / base form: ${segment.lemma}`, "", extra);
@@ -229,7 +231,7 @@ function showWord(element, segments, focus = false) {
           add(segment.verbForm.note, "study-features", extra);
         }
         if (segment.details.length)
-          add(segment.details.join(" · "), "", target);
+          add(segment.details.join(" · "), "study-tense", target);
         add(segment.features, "study-features", extra);
       };
       describeSegments(primary).forEach((segment) => renderSegment(segment));
@@ -246,8 +248,7 @@ function showWord(element, segments, focus = false) {
       }
     }
   }
-  const count = wordFrequency(element.textContent);
-  add(`Appears ${count} ${count === 1 ? "time" : "times"} in the Quran.`);
+
   add(
     "Counts use normalized word spelling and exclude unnumbered opening Bismillah. Grammar shows word morphology and supplied case/mood tags, not full sentence analysis.",
     "study-features",

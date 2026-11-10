@@ -4821,3 +4821,44 @@ body[data-theme].focus-reading .check-recitation { width:44px; min-width:44px; h
 .study-more { margin-top:10px; padding-top:8px; border-top:1px solid var(--line); }
 .study-more > summary { cursor:pointer; font-size:12px; color:var(--muted); }
 .study-more a { display:block; margin-top:8px; font-size:11px; }
+/* Word study uses named sections as well as colour, in both reading themes. */
+body[data-theme="white"] {
+  --study-meaning-bg:#eaf7ef; --study-meaning-ink:#175d47;
+  --study-root-bg:#edf4fc; --study-root-ink:#214f7b;
+  --study-form-bg:#f2edfb; --study-form-ink:#60438a;
+  --study-tense-bg:#fff6dc; --study-tense-ink:#785514;
+  --study-neutral-bg:#f2f4f5; --study-neutral-ink:#4b5962;
+  --study-header-ink:#135e58;
+}
+body[data-theme="black"] {
+  --study-meaning-bg:#16362d; --study-meaning-ink:#bcebd6;
+  --study-root-bg:#142c40; --study-root-ink:#bcdcf5;
+  --study-form-bg:#2e2444; --study-form-ink:#e1ceff;
+  --study-tense-bg:#3b311c; --study-tense-ink:#f0daa0;
+  --study-neutral-bg:#20272b; --study-neutral-ink:#cbd4d8;
+  --study-header-ink:#9bdacf;
+}
+#word-study-panel {
+  width:min(440px,calc(100vw - 32px)); padding:18px; border-radius:20px;
+  border-color:var(--line); box-shadow:0 16px 48px #0003; line-height:1.65;
+  scrollbar-width:thin;
+}
+#word-study-panel > button { width:40px; height:40px; font-size:24px; border-color:transparent; }
+#word-study-panel .study-arabic { font:36px/1.5 Amiri,serif; color:var(--study-header-ink); margin:0 0 2px; padding-right:48px; }
+#word-study-panel .study-reference { display:inline-block; margin:0 0 10px; padding:3px 9px; border-radius:20px; background:var(--study-neutral-bg); color:var(--study-neutral-ink); font-size:11px; }
+#word-study-panel .study-meaning { padding:12px 14px; margin:6px 0 12px; border:0; border-radius:12px; background:var(--study-meaning-bg); color:var(--study-meaning-ink); font-size:16px; line-height:1.6; font-weight:600; }
+#word-study-panel .study-segment { margin:8px 0; padding:0; border:0; font-size:13px; font-weight:600; }
+#word-study-panel .study-root,
+#word-study-panel .study-verb-form,
+#word-study-panel .study-tense { margin:8px 0; padding:10px 12px; border:0; border-inline-start:3px solid currentColor; border-radius:10px; font-weight:500; }
+#word-study-panel .study-root { background:var(--study-root-bg); color:var(--study-root-ink); font-size:14px; }
+#word-study-panel .study-verb-form { background:var(--study-form-bg); color:var(--study-form-ink); font-size:15px; line-height:1.8; font-weight:600; }
+#word-study-panel .study-tense { background:var(--study-tense-bg); color:var(--study-tense-ink); font-size:13px; }
+#word-study-panel .study-count { background:var(--study-neutral-bg); color:var(--study-neutral-ink); border-radius:9px; margin:10px 0; padding:9px 12px; font-size:12px; }
+#word-study-panel .study-attached,
+#word-study-panel .study-more { margin-top:8px; padding-top:0; border:0; }
+#word-study-panel .study-attached > summary,
+#word-study-panel .study-more > summary { padding:10px 12px; min-height:40px; border:1px solid var(--line); border-radius:9px; color:var(--text); font-size:12px; }
+#word-study-panel details[open] > summary { margin-bottom:10px; background:var(--raised); }
+#word-study-panel .study-reference { margin-right:6px; }
+#word-study-panel .study-count { display:inline-block; margin:0 0 10px; padding:3px 9px; border-radius:20px; font-size:11px; }
