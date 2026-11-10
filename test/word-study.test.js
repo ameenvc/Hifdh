@@ -53,7 +53,7 @@ test("verb details distinguish imperative, root and dictionary lemma in Fatiha",
   assert.match(details[0].type, /Verb/);
   assert.equal(details[0].root, "هدي");
   assert.equal(details[0].lemma, "هَدَى");
-  assert.ok(details[0].details.includes("Imperative · أمر"));
+  assert.ok(details[0].details.includes("Imperative · أَمْرٌ"));
   assert.match(details[1].type, /Pronoun/);
 });
 test("Bismillah does not shift Baqarah annotations and disconnected letters are not labelled verbs", () => {
@@ -198,4 +198,15 @@ test("Form I shows one past-stem pattern from lemma vowels, including the Nisa s
   );
   assert.equal(verbForm("V", ["STEM", "ROOT:خلق", "LEM:خلق"]).pattern, null);
   assert.equal(verbForm("V", ["STEM", "ROOT:قول", "LEM:قَالَ"]).pattern, null);
+});
+
+test("Arabic grammar labels carry harakat without altering corpus words or roots", () => {
+  const verb = describeSegments(read(1)[5][0])[0];
+  assert.equal(verb.type, "Verb · فِعْلٌ");
+  assert.ok(verb.details.includes("Imperative · أَمْرٌ"));
+  assert.equal(verb.root, "هدي");
+  assert.equal(verb.lemma, "هَدَى");
+  const noun = describeSegments(read(1)[1][2])[0];
+  assert.equal(noun.type, "Noun · اِسْمٌ");
+  assert.ok(noun.details.includes("Genitive · مَجْرُورٌ"));
 });

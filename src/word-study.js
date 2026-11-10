@@ -51,7 +51,7 @@ export function verbForm(tag, features) {
     number,
     pattern: pattern || null,
     quadriliteral,
-    label: `${quadriliteral ? "Quadriliteral form" : "Verb form"} ${number} · ${quadriliteral ? "رباعي" : "باب الفعل"}${pattern ? ` — ${pattern}` : " — pattern not specified"}`,
+    label: `${quadriliteral ? "Quadriliteral form" : "Verb form"} ${number} · ${quadriliteral ? "رُبَاعِيٌّ" : "بَابُ الْفِعْلِ"}${pattern ? ` — ${pattern}` : " — pattern not specified"}`,
     note:
       number === "I" && rootSize === 3
         ? pattern
@@ -62,32 +62,32 @@ export function verbForm(tag, features) {
 }
 export function describeSegments(segments) {
   const names = {
-    V: "Verb · فعل",
-    N: "Noun · اسم",
-    PN: "Proper noun · اسم علم",
-    ADJ: "Adjective · صفة",
-    PRON: "Pronoun · ضمير",
-    P: "Preposition · حرف جر",
-    DET: "Definite article · ال",
-    CONJ: "Conjunction · حرف عطف",
-    REL: "Relative pronoun · اسم موصول",
-    DEM: "Demonstrative · اسم إشارة",
-    NEG: "Negative particle · حرف نفي",
-    INL: "Disconnected letters · حروف مقطعة",
+    V: "Verb · فِعْلٌ",
+    N: "Noun · اِسْمٌ",
+    PN: "Proper noun · اِسْمُ عَلَمٍ",
+    ADJ: "Adjective · صِفَةٌ",
+    PRON: "Pronoun · ضَمِيرٌ",
+    P: "Preposition · حَرْفُ جَرٍّ",
+    DET: "Definite article · أَدَاةُ التَّعْرِيفِ",
+    CONJ: "Conjunction · حَرْفُ عَطْفٍ",
+    REL: "Relative pronoun · اِسْمٌ مَوْصُولٌ",
+    DEM: "Demonstrative · اِسْمُ إِشَارَةٍ",
+    NEG: "Negative particle · حَرْفُ نَفْيٍ",
+    INL: "Disconnected letters · حُرُوفٌ مُقَطَّعَةٌ",
   };
   const labels = {
-    PERF: "Past · ماضٍ",
-    IMPF: "Imperfect · مضارع",
-    IMPV: "Imperative · أمر",
-    PASS: "Passive · مبني للمجهول",
+    PERF: "Past · مَاضٍ",
+    IMPF: "Imperfect · مُضَارِعٌ",
+    IMPV: "Imperative · أَمْرٌ",
+    PASS: "Passive · مَبْنِيٌّ لِلْمَجْهُولِ",
     ACT: "Active participle component",
-    PCPL: "Participle · اسم مشتق",
-    NOM: "Nominative · مرفوع",
-    ACC: "Accusative · منصوب",
-    GEN: "Genitive · مجرور",
-    "MOOD:IND": "Indicative · مرفوع",
-    "MOOD:SUBJ": "Subjunctive · منصوب",
-    "MOOD:JUS": "Jussive · مجزوم",
+    PCPL: "Participle · اِسْمٌ مُشْتَقٌّ",
+    NOM: "Nominative · مَرْفُوعٌ",
+    ACC: "Accusative · مَنْصُوبٌ",
+    GEN: "Genitive · مَجْرُورٌ",
+    "MOOD:IND": "Indicative · مَرْفُوعٌ",
+    "MOOD:SUBJ": "Subjunctive · مَنْصُوبٌ",
+    "MOOD:JUS": "Jussive · مَجْزُومٌ",
   };
   return segments.map(([text, tag, features]) => ({
     text,
@@ -244,7 +244,18 @@ function showWord(element, segments, focus = false) {
       const { primary, attached } = partitionSegments(segments);
       const renderSegment = (segment, target = panel) => {
         add(`${segment.text} — ${segment.type}`, "study-segment", target);
-        if (segment.root) add(`Root: ${segment.root}`, "study-root", target);
+        if (segment.root) {
+          const root = document.createElement("p");
+          root.className = "study-root";
+          root.append(document.createTextNode("Root letters: "));
+          const letters = document.createElement("span");
+          letters.className = "study-arabic-run";
+          letters.lang = "ar";
+          letters.dir = "rtl";
+          letters.textContent = [...segment.root].join(" · ");
+          root.append(letters);
+          target.append(root);
+        }
         const extra = target === panel ? more : target;
         if (segment.lemma)
           add(`Lemma / base form: ${segment.lemma}`, "", extra);

@@ -147,3 +147,7 @@ Replaced the multicolour word-card sections with teal meaning accents and neutra
 ## Single Form I pattern — 10 November 2026
 
 Removed the three generic Form I alternatives from the card. One past-stem pattern is now selected from the middle-radical vowel only when a three-letter source lemma matches the root. Missing vowels and contracted forms such as قال do not receive a guessed pattern. This identifies the past-stem model, not the present-tense vowel class. The 90 automated tests pass, covering the real Nisa 4:1 خلق example, all three middle-vowel alternatives and unsupported cases. The production browser regression opens خلقكم in Nisa and verifies that only فَعَلَ appears. Quran and corpus data are unchanged.
+
+## Harakat in word cards — 10 November 2026
+
+Added harakat to the controlled Arabic grammar labels, including parts of speech, tense, voice and case/mood. Source Quran words, corpus segments, lemmas and patterns retain their original characters. Roots are presented as separated radical letters rather than vowelled as invented words. All 91 automated tests pass, including vowelled verb/noun/imperative/genitive labels and unchanged source root/lemma values. The production browser check verifies visible harakat labels and the root-letter display. This is UI label vocalization, not automatic diacritization of arbitrary or incomplete corpus text.

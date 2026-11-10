@@ -90,7 +90,18 @@ try {
     await page.locator("#word-study-panel").textContent(),
     /Imperative/,
   );
-  assert.match(await page.locator("#word-study-panel").textContent(), /هدي/);
+  assert.equal(
+    await page.locator(".study-root .study-arabic-run").textContent(),
+    "ه · د · ي",
+  );
+  assert.match(
+    await page.locator(".study-segment").first().textContent(),
+    /فِعْلٌ/,
+  );
+  assert.match(
+    await page.locator(".study-tense").first().textContent(),
+    /أَمْرٌ/,
+  );
   assert.equal(await page.locator(".study-pattern").getAttribute("lang"), "ar");
   assert.equal(
     await page
