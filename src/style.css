@@ -4880,3 +4880,21 @@ body[data-theme="black"] { --study-meaning-bg:#142f2c; --study-meaning-ink:#c0e6
 #word-study-panel .study-pattern { display:block; font-family:Amiri,'Times New Roman',serif; font-size:32px; line-height:2; font-weight:400; color:var(--text); text-align:right; unicode-bidi:isolate; }
 #word-study-panel .study-pattern:not([lang="ar"]) { font-family:inherit; font-size:13px; text-align:left; }
 #word-study-panel .study-features .study-arabic-run { font-size:24px; }
+/* A clear sequence: selected word, meaning, then a compact grammar grid. */
+#word-study-panel > button { position:absolute; top:14px; right:14px; float:none; }
+#word-study-panel .study-arabic { text-align:center; padding:2px 40px 0; margin:0; }
+#word-study-panel .study-meta { display:flex; justify-content:center; flex-wrap:wrap; gap:6px; margin:0 0 16px; }
+#word-study-panel .study-meta > p { margin:0; }
+#word-study-panel .study-meaning { margin:0 0 16px; padding:14px 16px; }
+#word-study-panel .study-meaning .study-field-label { color:var(--study-meaning-ink); opacity:.85; margin-bottom:4px; }
+#word-study-panel .study-meaning-value { display:block; font-size:17px; font-weight:500; line-height:1.6; }
+#word-study-panel .study-grammar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0 0 14px; }
+#word-study-panel .study-grammar > .study-segment { grid-column:1/-1; margin:0; padding:0 0 8px; border-bottom:1px solid var(--line); }
+#word-study-panel .study-grammar > .study-base,
+#word-study-panel .study-grammar > .study-verb-form { display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:6px; min-width:0; margin:0; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--raised); }
+#word-study-panel .study-base .study-arabic-run { font-size:32px; line-height:2; text-align:right; overflow-wrap:anywhere; }
+#word-study-panel .study-grammar .study-pattern { overflow-wrap:anywhere; }
+#word-study-panel .study-grammar > .study-tense { grid-column:1/-1; margin:0; padding:4px 0; border:0; }
+#word-study-panel .study-unavailable { color:var(--muted); font-size:13px; padding:8px 0; }
+@media(max-width:359px) { #word-study-panel .study-grammar { grid-template-columns:1fr; } }
+#word-study-panel .study-grammar:not(:has(> .study-verb-form)) > .study-base { grid-column:1/-1; }

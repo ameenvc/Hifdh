@@ -92,7 +92,7 @@ try {
   );
   assert.equal(
     await page.locator(".study-root .study-arabic-run").textContent(),
-    "ه · د · ي",
+    "هَدَى",
   );
   assert.match(
     await page.locator(".study-segment").first().textContent(),
@@ -126,6 +126,16 @@ try {
     true,
   );
   await page.locator(".study-more > summary").click();
+  const baseBox = await page
+    .locator(".study-grammar > .study-base")
+    .first()
+    .boundingBox();
+  const formBox = await page
+    .locator(".study-grammar > .study-verb-form")
+    .first()
+    .boundingBox();
+  assert.ok(Math.abs(baseBox.y - formBox.y) < 1);
+  assert.ok(Math.abs(baseBox.width - formBox.width) < 1);
   assert.match(
     await page.locator(".study-verb-form").textContent(),
     /Verb form I/,
@@ -155,7 +165,7 @@ try {
   await page.locator("#word-study-panel>button").click();
   await page.locator('[data-study-word="1:2:0"]').tap();
   assert.equal(
-    await page.locator("#word-study-panel > .study-segment").count(),
+    await page.locator(".study-grammar > .study-segment").count(),
     1,
   );
   assert.equal(
@@ -201,7 +211,7 @@ try {
   await word.tap();
   assert.match(
     await page.locator("#word-study-panel").textContent(),
-    /base form/,
+    /Base word/,
   );
   await page.keyboard.press("Escape");
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -370,6 +380,10 @@ try {
   );
   await page.locator(`[data-study-word="${createdRef}"]`).tap();
   assert.equal(await page.locator(".study-pattern").textContent(), "فَعَلَ");
+  assert.equal(
+    await page.locator(".study-base .study-arabic-run").first().textContent(),
+    "خَلَقَ",
+  );
   assert.deepEqual(errors, []);
   console.log(
     "PASS: phone tap, desktop hover, corpus verb details, theme, word colours, unchanged Quran text, hidden-word protection, English meanings, minimal reader and consistent text size across pages/resizing.",

@@ -213,21 +213,34 @@ function showWord(element, segments, focus = false) {
   add(`Surah ${s} · Ayah ${Number(v) + 1}`, "study-reference");
   const count = wordFrequency(element.textContent);
   add(`In Quran: ${count} ${count === 1 ? "time" : "times"}`, "study-count");
+  const meta = document.createElement("div");
+  meta.className = "study-meta";
+  meta.append(
+    panel.querySelector(".study-reference"),
+    panel.querySelector(".study-count"),
+  );
+  panel.append(meta);
   const meaning = document.createElement("p");
   meaning.className = "study-meaning";
   meaning.setAttribute("role", "status");
-  meaning.textContent = "English meaning: loading…";
+  const meaningLabel = document.createElement("span");
+  meaningLabel.className = "study-field-label";
+  meaningLabel.textContent = "English meaning";
+  const meaningValue = document.createElement("span");
+  meaningValue.className = "study-meaning-value";
+  meaningValue.textContent = "Loading…";
+  meaning.append(meaningLabel, meaningValue);
   panel.append(meaning);
   meaningFor(s, v, w)
     .then((text) => {
       if (panel.isConnected)
-        meaning.textContent = text
-          ? `English meaning: ${text}`
+        meaningValue.textContent = text
+          ? text
           : "English meaning unavailable for this word.";
     })
     .catch(() => {
       if (panel.isConnected)
-        meaning.textContent =
+        meaningValue.textContent =
           "Meaning could not load. Check your connection, then tap the word again.";
     });
   const more = document.createElement("details");
@@ -242,23 +255,40 @@ function showWord(element, segments, focus = false) {
       );
     else {
       const { primary, attached } = partitionSegments(segments);
+      const grammar = document.createElement("div");
+      grammar.className = "study-grammar";
+      panel.append(grammar);
       const renderSegment = (segment, target = panel) => {
-        add(`${segment.text} — ${segment.type}`, "study-segment", target);
-        if (segment.root) {
-          const root = document.createElement("p");
-          root.className = "study-root";
-          root.append(document.createTextNode("Root letters: "));
-          const letters = document.createElement("span");
-          letters.className = "study-arabic-run";
-          letters.lang = "ar";
-          letters.dir = "rtl";
-          letters.textContent = [...segment.root].join(" · ");
-          root.append(letters);
-          target.append(root);
+        add(
+          target === grammar
+            ? `Word type: ${segment.type}`
+            : `${segment.text} — ${segment.type}`,
+          "study-segment",
+          target,
+        );
+        const base = document.createElement("p");
+        base.className = "study-root study-base";
+        const baseLabel = document.createElement("span");
+        baseLabel.className = "study-field-label";
+        baseLabel.textContent = "Base word";
+        const baseValue = document.createElement("span");
+        baseValue.className = segment.lemma
+          ? "study-arabic-run"
+          : "study-unavailable";
+        baseValue.textContent = segment.lemma || "Not supplied";
+        if (segment.lemma) {
+          baseValue.lang = "ar";
+          baseValue.dir = "rtl";
         }
-        const extra = target === panel ? more : target;
-        if (segment.lemma)
-          add(`Lemma / base form: ${segment.lemma}`, "", extra);
+        base.append(baseLabel, baseValue);
+        target.append(base);
+        const extra = target === grammar ? more : target;
+        if (segment.root)
+          add(
+            `Root letters: ${[...segment.root].join(" · ")}`,
+            "study-features",
+            extra,
+          );
         if (segment.verbForm) {
           const form = document.createElement("p");
           form.className = "study-verb-form";
@@ -282,7 +312,9 @@ function showWord(element, segments, focus = false) {
           add(segment.details.join(" · "), "study-tense", target);
         add(segment.features, "study-features", extra);
       };
-      describeSegments(primary).forEach((segment) => renderSegment(segment));
+      describeSegments(primary).forEach((segment) =>
+        renderSegment(segment, grammar),
+      );
       if (attached.length) {
         const details = document.createElement("details");
         details.className = "study-attached";

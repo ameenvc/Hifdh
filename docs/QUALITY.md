@@ -151,3 +151,7 @@ Removed the three generic Form I alternatives from the card. One past-stem patte
 ## Harakat in word cards — 10 November 2026
 
 Added harakat to the controlled Arabic grammar labels, including parts of speech, tense, voice and case/mood. Source Quran words, corpus segments, lemmas and patterns retain their original characters. Roots are presented as separated radical letters rather than vowelled as invented words. All 91 automated tests pass, including vowelled verb/noun/imperative/genitive labels and unchanged source root/lemma values. The production browser check verifies visible harakat labels and the root-letter display. This is UI label vocalization, not automatic diacritization of arbitrary or incomplete corpus text.
+
+## Vowelled base word and structured card — 10 November 2026
+
+Replaced the main separated-radical field with Base word using the original source lemma and its harakat; missing lemmas show Not supplied. Raw radicals remain in More details. The selected word and metadata are centered, meaning has its own section, and base word / verb pattern share aligned panels (stacked below 360px), followed by tense and collapsed extras. The source lemma is labelled Base word rather than conflated with abstract root letters. The production browser regression verifies هَدَى and خَلَقَ, equal paired-panel positions at phone width, and existing meaning/grammar workflows. Both themes were visually inspected; sampled text contrast remains at least 8.73:1 in white view and 10.61:1 in black view. Corpus and Quran source data are unchanged.
