@@ -3,6 +3,7 @@ package com.ameenvc.hifdh;
 import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Build;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -18,7 +19,9 @@ public class QuranSpeechPlugin extends Plugin {
     private String session;
 
     @PluginMethod public void available(PluginCall call) {
-        call.resolve(new JSObject().put("available", SpeechRecognizer.isRecognitionAvailable(getContext())));
+        boolean local = call.getBoolean("onDeviceOnly", true);
+        boolean available = local ? Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(getContext()) : SpeechRecognizer.isRecognitionAvailable(getContext());
+        call.resolve(new JSObject().put("available", available));
     }
     @Override @PluginMethod public void requestPermissions(PluginCall call) {
         if (getPermissionState("microphone") == PermissionState.GRANTED) permissionResult(call);
@@ -34,7 +37,11 @@ public class QuranSpeechPlugin extends Plugin {
         getActivity().runOnUiThread(() -> {
             cleanup(); session = id;
             try {
-                recognizer = SpeechRecognizer.createSpeechRecognizer(getContext());
+                boolean local = call.getBoolean("onDeviceOnly", true);
+                if (local && (Build.VERSION.SDK_INT < 31 || !SpeechRecognizer.isOnDeviceRecognitionAvailable(getContext()))) {
+                    cleanup(); call.reject("On-device speech unavailable", "ON_DEVICE_UNAVAILABLE"); return;
+                }
+                recognizer = local ? SpeechRecognizer.createOnDeviceSpeechRecognizer(getContext()) : SpeechRecognizer.createSpeechRecognizer(getContext());
                 recognizer.setRecognitionListener(new RecognitionListener() {
                     private boolean current() { return id.equals(session); }
                     private void result(Bundle bundle, boolean isFinal) {

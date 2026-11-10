@@ -1,0 +1,15 @@
+{
+ "applicationId":"com.ameenvc.hifdh",
+ "appName":"Hifdh – Quran Memorization",
+ "supportEmail":"info@setilas.com",
+ "privacyPolicyUrl":"https://ameenvc.github.io/Hifdh/privacy.html",
+ "website":"https://ameenvc.github.io/Hifdh/",
+ "category":"EDUCATION",
+ "price":"free",
+ "ads":false,
+ "inAppPurchases":false,
+ "intendedAudience":"all ages, including children",
+ "developerDisplayName":"Account owner must choose their verified display name in Play Console",
+ "publicationStatus":"prepared for review; not submitted",
+ "accountExists":false
+}

@@ -1,0 +1,5 @@
+No app account, password, payment or membership is required.
+
+Read Quran text and open word/ayah meanings immediately. For voice: tap the microphone, choose Normal recitation or Hifdh, then make a neutral age-band choice when requested. Grant microphone permission only if testing voice. Adult profiles may use the device's Arabic speech service. Under-18/prefer-not/unknown profiles require supported on-device Arabic recognition; otherwise use hints/manual recall. Online reference audio and outside links are disabled for restricted profiles. These are normal public app behaviours, not reviewer-only modes.
+
+Age & privacy options and the bundled privacy policy are in reader settings. There are no login credentials to provide. Actual device speech support/network access can limit voice features.

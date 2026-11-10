@@ -44,6 +44,7 @@ try {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.addInitScript(() => {
+    localStorage.setItem("hifdh-age-band-v1", JSON.stringify("adult"));
     window.SpeechRecognition = class {
       start() {}
       abort() {

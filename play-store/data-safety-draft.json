@@ -1,0 +1,18 @@
+{
+ "status":"DRAFT — owner must verify against the exact Console questions and selected device speech providers before submitting",
+ "accounts":false,
+ "ads":false,
+ "analyticsSdk":false,
+ "dataTypes":[{
+   "type":"Audio files / Voice or sound recordings",
+   "recommendedCollectionDeclaration":"Yes, optional for adult online speech recognition",
+   "purpose":["App functionality"],
+   "sharing":"Conservatively disclose transfer to the device/browser speech provider; verify Console's service-provider exception before choosing a final answer",
+   "ephemeralProcessing":"Do not claim without confirming the selected provider's retention",
+   "children":"Native under-18/unknown/prefer-not profiles require on-device recognition; no cloud fallback; browser voice disabled for restricted profiles"
+ }],
+ "localOnlyData":["age band","bookmarks","memorized ayah marks","practice activity","recognized-text comparison history","settings"],
+ "transport":"App web/audio URLs use HTTPS. A universal encryption assertion for every OS speech service has not been verified.",
+ "deletion":"No app account. Local data can be deleted through app storage settings/uninstall; individual review records can be deleted in Review. Provider-held records follow provider policies.",
+ "requiredOwnerChecks":["Confirm speech-provider data categories, retention and transport", "Verify child/unknown-age network flows on real Android devices", "Complete Families and target-audience declarations", "Answer IARC questionnaire accurately, including scripture's non-graphic references to conflict/violence", "Confirm licence scope for the intended noncommercial distribution"]
+}

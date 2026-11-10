@@ -112,6 +112,7 @@ test("pausing while native permission is pending never starts the microphone lat
   h.plugin.requestPermissions = () =>
     new Promise((resolve) => (allow = resolve));
   h.speech.start();
+  await tick();
   h.speech.abort();
   allow({ granted: true });
   await tick();
@@ -129,4 +130,16 @@ test("native start failures are visible and remove listeners", async () => {
   await tick();
   assert.deepEqual(errors, ["audio-capture"]);
   assert.equal(h.count(), 0);
+});
+
+
+test('native restricted speech never silently falls back to cloud recognition', async()=>{
+ const h=harness();h.speech.start();await tick();assert.equal(h.starts[0].onDeviceOnly,true);h.speech.abort();
+ h.speech.requiresOnDeviceRecognition=false;h.speech.start();await tick();assert.equal(h.starts[1].onDeviceOnly,false);h.speech.abort();
+});
+test('unavailable on-device speech stops before requesting microphone permission', async()=>{
+ const h=harness();let permissions=0;const errors=[];
+ h.plugin.available=async options=>{assert.equal(options.onDeviceOnly,true);return{available:false};};
+ h.plugin.requestPermissions=async()=>{permissions++;return{granted:true};};h.speech.onerror=e=>errors.push(e.error);
+ h.speech.start();await tick();assert.equal(permissions,0);assert.equal(h.starts.length,0);assert.deepEqual(errors,['service-not-allowed']);
 });

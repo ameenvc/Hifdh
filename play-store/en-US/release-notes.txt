@@ -1,0 +1,1 @@
+First Play release candidate: Quran reading, Hifdh practice, word and ayah meanings, source-backed grammar, light/dark views and local progress. Includes age-based privacy settings and on-device-only voice for restricted profiles where supported.

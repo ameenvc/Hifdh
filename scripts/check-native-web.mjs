@@ -71,9 +71,21 @@ try {
   assert.equal(manifest.display, "standalone");
   for (const icon of manifest.icons)
     assert.ok((await fetch(url + icon.src)).ok);
+  await page.keyboard.press("Escape");
+  await page.locator("#check-recitation").click();
+  await page.locator("#start-normal-recitation").click();
+  assert.equal(await page.locator("#age-band-dialog").count(), 1);
+  await page.locator('[data-age-band="under13"]').click();
+  assert.match(await page.locator("body").textContent(), /On-device-only speech is unavailable/);
+  await page.locator("#controls-toggle").click();
+  await page.locator("#reader-settings").click();
+  await page.locator("#view-privacy-policy").click();
+  await page.locator(".privacy-document").waitFor();
+  assert.match(await page.locator(".privacy-document").textContent(), /info@setilas.com/);
+  assert.ok((await fetch(url + "privacy.html")).ok);
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: native root-relative bundle loads Quran, grammar, word meanings, ayah meanings and install icons.",
+    "PASS: native root-relative bundle loads Quran, grammar, word meanings, ayah meanings, install icons and restricted-age privacy flow.",
   );
 } finally {
   await browser?.close();

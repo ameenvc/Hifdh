@@ -13,3 +13,4 @@ ios/App/CapApp-SPM/.build/
 *.jks
 *.p12
 *.mobileprovision
+.release-signing/

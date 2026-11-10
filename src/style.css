@@ -4898,3 +4898,9 @@ body[data-theme="black"] { --study-meaning-bg:#142f2c; --study-meaning-ink:#c0e6
 #word-study-panel .study-unavailable { color:var(--muted); font-size:13px; padding:8px 0; }
 @media(max-width:359px) { #word-study-panel .study-grammar { grid-template-columns:1fr; } }
 #word-study-panel .study-grammar:not(:has(> .study-verb-form)) > .study-base { grid-column:1/-1; }
+.privacy-dialog { position:fixed; inset:0; margin:auto; width:min(500px,calc(100vw - 32px)); max-height:85dvh; overflow:auto; padding:24px; border:1px solid var(--line); border-radius:16px; background:var(--surface); color:var(--text); line-height:1.7; }
+.privacy-dialog::backdrop { background:#0006; }
+.privacy-dialog h2 { font-size:20px; }
+.age-band-choice { display:block; width:100%; min-height:48px; margin:10px 0; padding:10px 14px; text-align:left; border:1px solid var(--line); border-radius:9px; background:var(--raised); color:var(--text); font:inherit; }
+.privacy-settings { display:flex; flex-wrap:wrap; gap:8px; }
+.privacy-document h1 { font-size:24px; }.privacy-document h2 { font-size:18px; }.privacy-document a { color:var(--accent); }

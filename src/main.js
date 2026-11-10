@@ -1,3 +1,4 @@
+import { getAgeBand, restrictedMode, chooseAgeBand, showPrivacyPolicy } from "./privacy-mode.js";
 import { installNativeSpeech } from "./native-speech.js";
 import { showVerseMeaning } from "./verse-meaning.js";
 import { bindWordStudy, toggleStudy } from "./word-study.js";
@@ -261,6 +262,8 @@ function renderWords() {
 }
 function playAyah() {
   if (state.loading) return;
+  if (!getAgeBand()) { chooseAgeBand(playAyah); return; }
+  if (restrictedMode()) { state.feedback="Online reference audio is unavailable with these privacy settings. Reading, meanings and manual memorization remain available.";state.controlsOpen=true;render();return; }
   if (state.playing) {
     stop();
     state.feedback = "Audio paused.";
@@ -464,6 +467,8 @@ function chooseRecitationMode() {
 }
 function startReciting(findAnywhere = false) {
   if (state.loading) return;
+  if (!getAgeBand()) { chooseAgeBand(()=>startReciting(findAnywhere)); return; }
+  if (restrictedMode() && !nativeSpeechEnabled) { state.feedback="On-device-only speech is unavailable in this browser. Use hints and manual recall, or the native app on a supported device.";state.controlsOpen=true;render();return; }
   prepareAlertSound();
   if (state.listening && !findAnywhere) {
     stop();
@@ -486,6 +491,7 @@ function startReciting(findAnywhere = false) {
   const session = new Speech();
   recognition = session;
   session.lang = "ar-SA";
+  session.requiresOnDeviceRecognition = restrictedMode();
   session.continuous = true;
   session.interimResults = true;
   session.maxAlternatives = 1;
@@ -680,7 +686,7 @@ function startReciting(findAnywhere = false) {
       e.error === "not-allowed"
         ? "Microphone access was denied. Allow it in device or browser settings to recite."
         : ["service-not-allowed", "language-not-supported"].includes(e.error)
-          ? "Arabic speech recognition is unavailable. Enable an Arabic-capable speech service in device settings, then retry. Hints and reference audio remain available."
+          ? session.requiresOnDeviceRecognition ? "On-device Arabic speech is unavailable. Continue with reading, meanings, hints and manual recall." : "Arabic speech recognition is unavailable. Enable an Arabic-capable speech service in device settings, then retry. Hints and reference audio remain available."
           : e.error === "network"
             ? "Speech recognition lost its connection. Check your internet connection and try again."
             : `Speech recognition stopped (${e.error}). Try again or practice using audio and hints.`;
@@ -953,6 +959,8 @@ function bindScreens() {
         }
       }),
   );
+  on("privacy-age-settings", () => { stop();chooseAgeBand(()=>render()); });
+  on("view-privacy-policy", () => { showPrivacyPolicy().catch(()=>{state.feedback="Privacy policy could not load. Contact info@setilas.com.";state.controlsOpen=true;render();}); });
   on("study-grammar-quick", () => { toggleStudy("grammar"); render(); });
   on("study-repeated-quick", () => { toggleStudy("repeated"); render(); });
   on("study-grammar", () => { toggleStudy("grammar"); render(); });
@@ -1275,6 +1283,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 window.addEventListener("pagehide", stop);
+window.addEventListener("storage", event => { if(event.key === "hifdh-age-band-v1") { stop();render(); } });
 
 render();
 
@@ -1314,8 +1323,7 @@ if (document.fonts?.ready) document.fonts.ready.then(fitQuranPage);
 document.addEventListener("keydown", (event) => {
   if (
     !document.querySelector(".paged-mushaf") ||
-    document.querySelector("#verse-meaning-panel") ||
-    document.querySelector("#recitation-mode-dialog") ||
+    document.querySelector("dialog[open]") ||
     state.controlsOpen ||
     event.target?.matches?.("input,select,textarea") ||
     event.altKey ||

@@ -1,0 +1,32 @@
+Make time for the Quran with Hifdh: a reading, memorization and Arabic study companion.
+
+READ AT YOUR PACE
+• Read all 114 surahs across standard Quran page boundaries.
+• Choose light or dark appearance and a consistent Arabic text size.
+• Save your place with bookmarks.
+
+PRACTISE MEMORIZATION
+• Keep the text visible for normal recitation, or hide words for Hifdh practice.
+• Reveal hints, continue after an ayah prompt, or practise manually without a microphone.
+• On supported devices, Arabic speech recognition can reveal matching words as you recite.
+• Review what recognition heard and confirm or dismiss possible text differences yourself.
+
+UNDERSTAND THE WORDS
+• Tap a word for an English meaning and source-backed grammar details.
+• See the source base word with harakat, verb form and available Arabic model pattern.
+• Explore repeated-word colours and occurrence counts.
+• Tap an ayah number for the full English translation of its meaning by Marmaduke Pickthall.
+
+KEEP YOUR OWN PROGRESS
+• Track practice time and memorized ayahs locally on your device.
+• No app account, advertisements or paid features.
+
+FOR FAMILIES
+Reading, meanings, grammar and manual study are available without microphone permission. Under-18 and unanswered/prefer-not age profiles use on-device-only recognition where supported, with online reference audio and outside links disabled. Adult profiles can use device speech services and online reference recitation. Availability varies by device, Arabic language model, permissions and connection.
+
+Quran text, fonts and study data are bundled in the Android app. Speech services and adult reference audio may need internet. Local progress is not synchronized to an account.
+
+IMPORTANT: speech recognition can mishear correct recitation. Hifdh is not a validated automatic Quran mistake detector, tajweed assessor or replacement for a qualified teacher. Automatic red transcript alerts are optional and experimental; safe feedback is the default. Translations express interpretations of meaning and are not tafsir.
+
+Support: info@setilas.com
+Privacy: https://ameenvc.github.io/Hifdh/privacy.html

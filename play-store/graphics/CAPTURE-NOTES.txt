@@ -1,0 +1,1 @@
+Phone screenshots: 1080×1920, generated from the actual bundled app UI in Chromium at 360×640 CSS pixels, DPR 3. No speech recording or fake progress was used. These are not real Android-device captures; confirm presentation on a target Android device before uploading. Feature graphic: original Hifdh artwork, 1024×500. App icon: 512×512.

@@ -47,3 +47,9 @@ Choose an Apple development team in Xcode before installing on a physical iPhone
 ## Verification limits
 
 Android compilation/signature checks and synthetic speech adapter tests do not verify actual device microphone routing, language packs, audible alerts, battery behaviour or speech accuracy. Check permission grant/denial, both recitation modes, backgrounding, reconnects and alert audio on physical phones before treating this as a production mobile release. Existing data-source and translation licences remain bundled and apply to native distribution too.
+
+## Play release candidate 1.0.1
+
+The signed release AAB targets API 36 (compile SDK 36, AGP 8.10.1). Follow [the Play release guide](../play-store/README.md). The local private upload key and backup are excluded from source control; the public certificate is in play-store. The AAB has not been submitted to Google Play.
+
+All ages including children is the intended audience. Native voice for minors/unknown age requires supported on-device recognition; browser voice, external links and online reference audio are restricted for these profiles. Unsupported devices retain manual study. The age choice stays local; it is not verified parental consent. Read the bundled privacy policy and complete physical-device/provider/Families review before production.

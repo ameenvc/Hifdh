@@ -9,6 +9,7 @@ export function createNativeRecognition(plugin) {
     interimResults = true;
     continuous = true;
     maxAlternatives = 1;
+    requiresOnDeviceRecognition = true;
     _active = false;
     _handles = [];
     start() {
@@ -32,18 +33,12 @@ export function createNativeRecognition(plugin) {
         }
       };
       (async () => {
+        const available = await plugin.available({ language: this.lang, onDeviceOnly: this.requiresOnDeviceRecognition });
+        if (!valid()) return;
+        if (!available.available) { error("service-not-allowed"); return; }
         const permission = await plugin.requestPermissions();
         if (!valid()) return;
-        if (!permission.granted) {
-          error("not-allowed");
-          return;
-        }
-        const available = await plugin.available({ language: this.lang });
-        if (!valid()) return;
-        if (!available.available) {
-          error("service-not-allowed");
-          return;
-        }
+        if (!permission.granted) { error("not-allowed"); return; }
         const handles = await Promise.all([
           plugin.addListener("speechResult", (event) => {
             if (
@@ -79,6 +74,7 @@ export function createNativeRecognition(plugin) {
           sessionId: id,
           language: this.lang,
           partialResults: this.interimResults,
+          onDeviceOnly: this.requiresOnDeviceRecognition,
         });
         if (valid()) this.onstart?.();
         else await plugin.stop({ sessionId: id });

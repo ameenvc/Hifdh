@@ -1,0 +1,20 @@
+{
+  "version": "1.0.1",
+  "versionCode": 2,
+  "targetSdk": 36,
+  "status": "prepared-not-submitted",
+  "automatedTests": {
+    "passed": 102,
+    "failed": 0
+  },
+  "bundletoolValidation": "passed",
+  "aabSignature": "verified upload key",
+  "androidDeviceTests": "pending",
+  "account": "not created",
+  "readinessGuide": "play-store/README.md",
+  "sha256": {
+    "Hifdh-release.aab": "24191c547a44c887943e2aee4b1a144845d17efe54473a68c722de145b1ffb18",
+    "Hifdh-preview.apk": "79bf1430b5a236efe5f7bf3d87600273f83feb01365a2325b9820c751817c99e",
+    "grammar-source.zip": "5f95cda275470a05b2a031a92c83bdc32dd112bf4a744c1046994fe8b478f914"
+  }
+}

@@ -24,6 +24,7 @@ function app(
   });
   const w = dom.window;
   w.fetch = fetchImpl;
+  w.localStorage.setItem("hifdh-age-band-v1", JSON.stringify("adult"));
   for (const [key, value] of Object.entries(storage))
     w.localStorage.setItem(key, value);
   let speech,
@@ -1002,5 +1003,36 @@ test("legacy automatic alerts migrate to unconfirmed feedback for misrecognized 
   assert.ok(a.w.document.getElementById('review-recognition'));
   a.click('review-recognition');
   assert.match(a.w.document.querySelector('.review-status').textContent,/Unconfirmed/);
+ }finally{a.close();}
+});
+
+
+test('unknown and child browser profiles cannot start cloud voice or online audio',()=>{
+ const a=app();
+ try{
+  a.w.localStorage.removeItem('hifdh-age-band-v1');a.click('listen');
+  assert.ok(a.w.document.getElementById('age-band-dialog'));assert.equal(a.speech,undefined);
+  a.w.document.querySelector('[data-age-band="under13"]').click();
+  assert.equal(a.speech,undefined);assert.equal(a.w.document.getElementById('listen').getAttribute('aria-pressed'),'false');
+  assert.match(a.w.document.body.textContent,/On-device-only speech is unavailable/);
+  a.click('play');assert.equal(a.player,undefined);assert.match(a.w.document.body.textContent,/Online reference audio is unavailable/);
+ }finally{a.close();}
+});
+test('restricted profiles block external source navigation and keep manual study available',()=>{
+ const a=app();
+ try{
+  a.w.localStorage.setItem('hifdh-age-band-v1','"prefer-not"');let opened=0;a.w.open=()=>opened++;
+  a.w.document.querySelector('a[href="https://tanzil.net"]').click();
+  assert.ok(a.w.document.getElementById('privacy-notice'));assert.equal(opened,0);
+  assert.ok(a.w.document.querySelector('.mushaf'));assert.ok(a.w.document.querySelector('.verse-marker'));
+ }finally{a.close();}
+});
+test('changing the age/privacy profile stops an active speech session',()=>{
+ const a=app();
+ try{
+  a.click('listen');a.click('reader-settings');a.click('privacy-age-settings');
+  a.w.document.querySelector('[data-age-band="teen"]').click();
+  assert.equal(a.w.document.getElementById('listen').getAttribute('aria-pressed'),'false');
+  assert.equal(JSON.parse(a.w.localStorage.getItem('hifdh-age-band-v1')),'teen');
  }finally{a.close();}
 });

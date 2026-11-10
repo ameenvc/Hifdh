@@ -1,6 +1,6 @@
 {
   "name": "hifdh",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,7 +17,8 @@
     "android:apk": "npm run mobile:sync && node scripts/build-android.mjs",
     "icons:generate": "node scripts/generate-app-icons.mjs",
     "deploy:pages": "npm run build -- --base=/Hifdh/ && python scripts/deploy-pages.py",
-    "test:native": "npm run build:native && node scripts/check-native-web.mjs"
+    "test:native": "npm run build:native && node scripts/check-native-web.mjs",
+    "android:aab": "npm run mobile:sync && node scripts/build-play-bundle.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "7.6.10",

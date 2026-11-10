@@ -93,7 +93,8 @@ public class QuranSpeechPlugin: CAPPlugin, CAPBridgedPlugin {
     }
     @objc public func available(_ call: CAPPluginCall) {
         let recognizer = SFSpeechRecognizer(locale: Locale(identifier: call.getString("language") ?? "ar-SA"))
-        call.resolve(["available": recognizer?.isAvailable ?? false])
+        let local = call.getBool("onDeviceOnly") ?? true
+        call.resolve(["available": (recognizer?.isAvailable ?? false) && (!local || (recognizer?.supportsOnDeviceRecognition ?? false))])
     }
     @objc public func start(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
@@ -105,6 +106,10 @@ public class QuranSpeechPlugin: CAPPlugin, CAPBridgedPlugin {
                   let recognizer = SFSpeechRecognizer(locale: Locale(identifier: call.getString("language") ?? "ar-SA")), recognizer.isAvailable else {
                 call.reject("Arabic speech recognition unavailable"); return
             }
+            let local = call.getBool("onDeviceOnly") ?? true
+            if local && !recognizer.supportsOnDeviceRecognition {
+                call.reject("On-device speech unavailable", "ON_DEVICE_UNAVAILABLE"); return
+            }
             self.cleanup()
             self.sessionID = id
             self.recognizer = recognizer
@@ -115,6 +120,7 @@ public class QuranSpeechPlugin: CAPPlugin, CAPBridgedPlugin {
                 let engine = AVAudioEngine()
                 let request = SFSpeechAudioBufferRecognitionRequest()
                 request.shouldReportPartialResults = true
+                request.requiresOnDeviceRecognition = local
                 self.engine = engine; self.request = request
                 let input = engine.inputNode
                 let format = input.outputFormat(forBus: 0)
