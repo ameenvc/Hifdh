@@ -7,7 +7,6 @@ export const studyKey = (text) =>
     .replace(/[^\u0621-\u064a]/g, "")
     .replace(/ـ/g, "");
 const triliteralPatterns = {
-  I: "فَعَلَ / فَعِلَ / فَعُلَ",
   II: "فَعَّلَ",
   III: "فَاعَلَ",
   IV: "أَفْعَلَ",
@@ -24,6 +23,13 @@ const quadriliteralPatterns = {
   III: "اِفْعَنْلَلَ",
   IV: "اِفْعَلَلَّ",
 };
+function formIPattern(root, lemma) {
+  if (!root || !lemma || studyKey(root) !== studyKey(lemma)) return null;
+  const radicals = lemma.match(/[\u0621-\u064a\u0671][\u064b-\u065f\u0670]*/g);
+  if (radicals?.length !== 3) return null;
+  const vowel = radicals[1].match(/[َُِ]/)?.[0];
+  return { "َ": "فَعَلَ", "ِ": "فَعِلَ", "ُ": "فَعُلَ" }[vowel] || null;
+}
 export function verbForm(tag, features) {
   if (tag !== "V" || !features.includes("STEM")) return null;
   const root = features.find((f) => f.startsWith("ROOT:"))?.slice(5);
@@ -32,9 +38,12 @@ export function verbForm(tag, features) {
   const number = explicit || ([3, 4].includes(rootSize) ? "I" : null);
   if (!number) return null;
   const quadriliteral = rootSize === 4;
+  const lemma = features.find((f) => f.startsWith("LEM:"))?.slice(4);
   const pattern =
     rootSize === 3
-      ? triliteralPatterns[number]
+      ? number === "I"
+        ? formIPattern(root, lemma)
+        : triliteralPatterns[number]
       : quadriliteral
         ? quadriliteralPatterns[number]
         : null;
@@ -45,7 +54,9 @@ export function verbForm(tag, features) {
     label: `${quadriliteral ? "Quadriliteral form" : "Verb form"} ${number} · ${quadriliteral ? "رباعي" : "باب الفعل"}${pattern ? ` — ${pattern}` : " — pattern not specified"}`,
     note:
       number === "I" && rootSize === 3
-        ? "Form I vowel subclass is not specified in the corpus. The alternatives are model patterns, not a claim about this word’s exact vowels."
+        ? pattern
+          ? "Past-stem model pattern based on the vowels of the source lemma. This does not identify the present-tense vowel class."
+          : "The source lemma does not establish one exact Form I pattern, so none is guessed."
         : "Model stem pattern; tense, passive voice, and weak roots can change the word’s surface spelling.",
   };
 }

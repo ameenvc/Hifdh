@@ -334,6 +334,31 @@ try {
   assert.ok((await page.locator(".word.uncertain").count()) > 0);
   assert.equal(await page.locator("#review-recognition").isVisible(), true);
   await page.locator("#check-recitation").click();
+  await selectMode("Read & reflect");
+  await page.locator("#surah-picker").selectOption("4");
+  await page.locator("#controls-toggle").click();
+  await page.locator("#study-grammar").click();
+  await page.keyboard.press("Escape");
+  const createdRef = await page
+    .locator("[data-study-word]")
+    .evaluateAll(
+      (nodes) =>
+        nodes.find(
+          (e) =>
+            e.textContent.replace(/[\u064b-\u065f\u0670\u06d6-\u06ed]/g, "") ===
+            "خلقكم",
+        )?.dataset.studyWord,
+    );
+  assert.ok(createdRef);
+  await page.waitForFunction(
+    (ref) =>
+      document
+        .querySelector(`[data-study-word="${ref}"]`)
+        ?.getAttribute("role") === "button",
+    createdRef,
+  );
+  await page.locator(`[data-study-word="${createdRef}"]`).tap();
+  assert.equal(await page.locator(".study-pattern").textContent(), "فَعَلَ");
   assert.deepEqual(errors, []);
   console.log(
     "PASS: phone tap, desktop hover, corpus verb details, theme, word colours, unchanged Quran text, hidden-word protection, English meanings, minimal reader and consistent text size across pages/resizing.",
