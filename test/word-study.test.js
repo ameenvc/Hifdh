@@ -155,3 +155,21 @@ test("articles and attached pronouns remain available without crowding the main 
   assert.equal(verb.primary[0][1], "V");
   assert.equal(verb.attached[0][1], "PRON");
 });
+
+
+test("verb cards show corpus forms and distinguish weak imperatives from Form IV", () => {
+  assert.equal(describeSegments(read(1)[5][0])[0].verbForm.number, 'I');
+  assert.equal(describeSegments(read(1)[4][3])[0].verbForm.number, 'X');
+  assert.equal(describeSegments(read(1)[6][2])[0].verbForm.pattern, 'أَفْعَلَ');
+  assert.equal(describeSegments(read(2)[213][15]).find(segment=>segment.verbForm)?.verbForm.quadriliteral, true);
+  assert.equal(describeSegments(read(2)[213][15]).find(segment=>segment.verbForm)?.verbForm.pattern, 'فَعْلَلَ');
+  assert.equal(describeSegments(read(1)[1][2])[0].verbForm, null);
+});
+
+test("rare forms and incomplete annotations do not receive invented patterns", async () => {
+  const {verbForm}=await import('../src/word-study.js');
+  assert.equal(verbForm('V',['STEM','ROOT:طمن','(XII)']).number,'XII');
+  assert.equal(verbForm('V',['STEM','ROOT:طمن','(XII)']).pattern,null);
+  assert.equal(verbForm('V',['STEM']),null);
+  assert.equal(verbForm('N',['STEM','ROOT:كتب']),null);
+});

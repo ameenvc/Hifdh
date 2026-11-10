@@ -4817,3 +4817,4 @@ body[data-theme].focus-reading .check-recitation { width:44px; min-width:44px; h
 .recitation-mode-choice strong { font-size:16px; }
 .recitation-mode-choice span { font-size:12px; line-height:1.5; }
 .review-recognition { margin-left:6px; padding:4px 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--text); font:inherit; text-decoration:underline; }
+#word-study-panel .study-verb-form { padding:8px 10px; border-inline-start:3px solid var(--accent); border-radius:4px; background:var(--soft); font-size:15px; font-weight:600; line-height:1.8; }

@@ -91,6 +91,8 @@ try {
     /Imperative/,
   );
   assert.match(await page.locator("#word-study-panel").textContent(), /هدي/);
+  assert.match(await page.locator('.study-verb-form').textContent(), /Verb form I/);
+  assert.match(await page.locator('.study-verb-form').textContent(), /فَعَلَ/);
   await page.waitForFunction(() =>
     document.querySelector(".study-meaning")?.textContent.includes("Guide us"),
   );

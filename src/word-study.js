@@ -6,6 +6,26 @@ export const studyKey = (text) =>
     .replace(/ى/g, "ي")
     .replace(/[^\u0621-\u064a]/g, "")
     .replace(/ـ/g, "");
+const triliteralPatterns = {
+  I: "فَعَلَ / فَعِلَ / فَعُلَ", II: "فَعَّلَ", III: "فَاعَلَ", IV: "أَفْعَلَ",
+  V: "تَفَعَّلَ", VI: "تَفَاعَلَ", VII: "اِنْفَعَلَ", VIII: "اِفْتَعَلَ",
+  IX: "اِفْعَلَّ", X: "اِسْتَفْعَلَ",
+};
+const quadriliteralPatterns = { I: "فَعْلَلَ", II: "تَفَعْلَلَ", III: "اِفْعَنْلَلَ", IV: "اِفْعَلَلَّ" };
+export function verbForm(tag, features) {
+  if (tag !== "V" || !features.includes("STEM")) return null;
+  const root = features.find(f => f.startsWith("ROOT:"))?.slice(5);
+  const rootSize = root ? [...root].length : 0;
+  const explicit = features.find(f => /^\([IVX]+\)$/.test(f))?.slice(1,-1);
+  const number = explicit || ([3,4].includes(rootSize) ? "I" : null);
+  if (!number) return null;
+  const quadriliteral = rootSize === 4;
+  const pattern = rootSize === 3 ? triliteralPatterns[number] : quadriliteral ? quadriliteralPatterns[number] : null;
+  return { number, pattern: pattern || null, quadriliteral,
+    label: `${quadriliteral ? "Quadriliteral form" : "Verb form"} ${number} · ${quadriliteral ? "رباعي" : "باب الفعل"}${pattern ? ` — ${pattern}` : " — pattern not specified"}`,
+    note: number === "I" && rootSize === 3 ? "Form I vowel subclass is not specified in the corpus. The alternatives are model patterns, not a claim about this word’s exact vowels."
+      : "Model stem pattern; tense, passive voice, and weak roots can change the word’s surface spelling." };
+}
 export function describeSegments(segments) {
   const names = {
     V: "Verb · فعل",
@@ -40,9 +60,10 @@ export function describeSegments(segments) {
     type: names[tag] || `Corpus tag: ${tag}`,
     root: features.find((f) => f.startsWith("ROOT:"))?.slice(5),
     lemma: features.find((f) => f.startsWith("LEM:"))?.slice(4),
+    verbForm: verbForm(tag, features),
     details: features
-      .filter((f) => labels[f] || /^\([IVX]+\)$/.test(f))
-      .map((f) => labels[f] || `Verb form ${f}`),
+      .filter((f) => labels[f])
+      .map((f) => labels[f]),
     features: features
       .filter((f) => !f.startsWith("ROOT:") && !f.startsWith("LEM:"))
       .join(" · "),
@@ -180,6 +201,10 @@ function showWord(element, segments, focus = false) {
             "",
             target,
           );
+        if (segment.verbForm) {
+          add(segment.verbForm.label, "study-verb-form", target);
+          add(segment.verbForm.note, "study-features", target);
+        }
         if (segment.details.length)
           add(segment.details.join(" · "), "", target);
         add(segment.features, "study-features", target);
